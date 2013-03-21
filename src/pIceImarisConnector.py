@@ -1,13 +1,13 @@
 '''
-Name:         pIceImarisConnector
-Purpose:      pIceImarisConnector is a simple Python class eases communication
-              between Bitplane Imaris and Python using the Imaris XT interface.
+Name       pIceImarisConnector
+Purpose    pIceImarisConnector is a simple Python class eases communication
+           between Bitplane Imaris and Python using the Imaris XT interface.
 
-Author:      Aaron Ponti
+Author     Aaron Ponti
 
-Created:     21.03.2013
-Copyright:   (c) Aaron Ponti 2013
-Licence:     GPL v2
+Created    21.03.2013
+Copyright  (c) Aaron Ponti 2013
+Licence    GPL v2
 '''
 
 class pIceImarisConnector:
@@ -28,8 +28,15 @@ class pIceImarisConnector:
         indexingStart:      <describe> (default 0)
         '''
         
+        self.__version__ = "0.2.0"
         self._mImarisApplication = imarisApplication
 
+
+    def display(self):
+        '''
+        Print pIceImarisConnector information
+        '''
+        print("pIceImarisConnector v" + self.__version__)
 
     def findImaris(self):
         

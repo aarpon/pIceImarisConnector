@@ -1,12 +1,12 @@
 '''
-Name:         pIceImarisApplication Test Unit
-Purpose:      Test pIceImarisApplication
+Name       pIceImarisApplication Test Unit
+Purpose    Test pIceImarisApplication
 
-Author:       Aaron Ponti
+Author     Aaron Ponti
 
-Created:      21-03-2013
-Copyright:    (c) Aaron Ponti 2013
-Licence:      GPL v2
+Created    21-03-2013
+Copyright  (c) Aaron Ponti 2013
+Licence    GPL v2
 '''
     
 from pIceImarisConnector import pIceImarisConnector
@@ -17,6 +17,8 @@ class pIceImarisConnectorUnitTest(unittest.TestCase):
     def testConstruct(self):
         assert(True)
         
-
 if __name__ == '__main__':
+    '''
+    Program entry point: run tests
+    '''
     unittest.main()
