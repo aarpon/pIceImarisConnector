@@ -10,6 +10,8 @@ Copyright  (c) Aaron Ponti 2013
 Licence    GPL v2
 '''
 
+import os
+
 class pIceImarisConnector:
     
     '''
@@ -27,21 +29,46 @@ class pIceImarisConnector:
         imarisApplication:  <describe> (default None)
         indexingStart:      <describe> (default 0)
         '''
-        
         self.__version__ = "0.2.0"
-        self._mImarisApplication = imarisApplication
+        self.__imarisApplication__ = imarisApplication
+        self.__indexingStart__ = indexingStart
+        self.__imarisPath__ = ""
+        
+        # Find Imaris
+        self.findImaris()
 
+    @property
+    def version(self):
+        return self.__version__
+    
+    @property
+    def mImarisApplication(self):
+        return self.__imarisApplication__
+    
+    @property
+    def indexingStart(self):
+        return self.__indexingStart__
+
+    def findImaris(self):
+        ''' 
+        findImaris() gets the Imaris path to the Imaris executable.
+        '''
+        IMARISPATH = os.getenv('IMARISPATH')
+        if IMARISPATH is None:
+            self.__imarisPath__ = "NOT FOUND."
+        else:
+            self.__imarisPath__ = IMARISPATH
 
     def display(self):
         '''
-        Print pIceImarisConnector information
+        Print pIceImarisConnector version
         '''
         print("pIceImarisConnector v" + self.__version__)
-
-    def findImaris(self):
-        
-        ''' 
-        This methods gets the Imaris path to the Imaris executable and
-        to the ImarisLib.jar library from the environment variable IMARISPATH.
+    
+    def info(self):
         '''
-        pass
+        Print pIceImarisConnector information
+        '''
+        print("Imaris found at '" + self.__imarisPath__ +"'")
+        
+        

@@ -15,3 +15,4 @@ from pIceImarisConnector import pIceImarisConnector
 if __name__ == '__main__':
     conn = pIceImarisConnector()
     conn.display()
+    conn.info()
