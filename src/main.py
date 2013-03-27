@@ -14,6 +14,7 @@ from pIceImarisConnector import pIceImarisConnector
 
 if __name__ == '__main__':
     conn = pIceImarisConnector()
+    conn2 = pIceImarisConnector(conn)
     print(conn.__doc__)
     conn.display()
     conn.info()

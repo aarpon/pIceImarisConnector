@@ -1,19 +1,35 @@
-'''
+"""
 Name      pIceImarisConnector
 Purpose   pIceImarisConnector is a simple Python class eases communication
           between Bitplane Imaris and Python using the Imaris XT interface.
 
 Author    Aaron Ponti
 
-Created   21.03.2013
-Copyright (c) Aaron Ponti 2013
-Licence   GPL v2
-'''
+ImarisConnector is a simple commodity class that eases communication between
+Imaris and MATLAB using the Imaris XT interface.
+Copyright (C) 2013  Aaron Ponti
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+"""
 
 import os
 import platform
 import glob
 import re
+import random
 
 class pIceImarisConnector:
     """pIceImarisConnector is a simple Python class eases communication 
@@ -30,13 +46,30 @@ class pIceImarisConnector:
     _mImarisServerExePath = ""
     _mImarisLibPath = ""
     
+    # ImarisLib object
+    _mImarisLib = None
+
     # ICE ImarisApplication object
     _mImarisApplication = None
 
     # Indexing start
     _mIndexingStart = 0
+    
+    # Imaris ID
+    _mImarisObjectID = 0
 
-    def __init__(self, imarisApplication = None, indexingStart = 0):
+    def __new__(cls, *args, **kwds):
+        it = cls.__dict__.get("__it__")
+        if it is not None:
+            return it
+        cls.__it__ = it = object.__new__(cls)
+        it.init(*args, **kwds)
+        return it
+
+    def init(self, *args, **kwds):
+        pass
+    
+    def __init__(self, imarisApplication=None, indexingStart=0):
         """"pIceImarisConnector constructor.
 
         Arguments:
@@ -86,8 +119,64 @@ class pIceImarisConnector:
         if indexingStart != 0 and indexingStart != 1:
             raise ValueError("indexingStart must be either 0 or 1!")
         
-        # Find Imaris
+        # Store the required paths
         self.findImaris()
+
+        # Add the ImarisLib.jar package to the java class path
+        # (if not there yet)
+        # self._mImarisLib = ????
+        # TODO: Check if this is needed
+            
+        # Create and store an ImarisLib instance
+        # TODO: Check if this is needed
+
+        # Assign a random id
+        self._mImarisObjectID = random.randint(0, 100000)
+        
+        # Set the indexing start
+        self._mIndexingStart = indexingStart
+        
+        # Now we check the (optional) input parameter imarisApplication.
+        # We have three cases. If imarisApplication is omitted, we just
+        # create a pIceImarisConnector object that does nothing.
+        # Alternatively, imarisApplication could be:
+        # - an Imaris Application ID as provided by Imaris: we query 
+        #   the Imaris Server for the application and assign it to the
+        #   mImarisApplication property
+        # - a pIceImarisConnector reference: we just return it
+        # - an Imaris Application ICE object (rare): we simply assign
+        #   it to the mImarisApplication property.
+        
+        # Case 0
+        if imarisApplication is None:
+            # We already did everything
+            pass
+        
+        # Case 1
+        elif isinstance(imarisApplication, int):
+            # Check if the application is registered
+            server = self._mImarisLib.GetServer()
+            nApps = server.GetNumberOfObjects()
+            if nApps == 0:
+                raise Exception("There are no registered Imaris applications.")
+
+            if server.GetObjectID(imarisApplication) == -1:
+                raise Exception("Invalid Imaris application ID.")
+
+            self._mImarisApplicarion = self._mImarisLib.GetApplication(imarisApplication)
+
+        # Case 2
+        elif isinstance(imarisApplication, "pIceImarisConnector"):
+            # The __init__() method took care of passing the
+            # reference; we do not need to do anything else
+            pass
+
+        # Case 3
+        elif isinstance(imarisApplication, "Imaris.IApplicationPrxHelper"):
+            self._mImarisApplication = imarisApplication
+        
+        else:
+            raise Exception("Invalid imarisApplication argument!")
 
     def __del__(self):
         """pIceImarisConnector destructor."""
@@ -212,7 +301,7 @@ class pIceImarisConnector:
         Arguments:
         
         directory:  directory to be scanned. Most likely 
-                    C:\Program Files\Bitplane in Windows and 
+                    C:\\Program Files\\Bitplane in Windows and 
                     /Applications on Mac OS X.
         
         """
