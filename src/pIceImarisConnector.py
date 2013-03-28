@@ -30,8 +30,9 @@ import platform
 import glob
 import re
 import random
+import imp
 
-class pIceImarisConnector:
+class pIceImarisConnector(object):
     """pIceImarisConnector is a simple Python class eases communication 
     between Bitplane Imaris and Python using the Imaris XT interface.
     
@@ -58,19 +59,19 @@ class pIceImarisConnector:
     # Imaris ID
     _mImarisObjectID = 0
 
-    def __new__(cls, *args, **kwds):
-        it = cls.__dict__.get("__it__")
-        if it is not None:
-            return it
-        cls.__it__ = it = object.__new__(cls)
-        it.init(*args, **kwds)
-        return it
+    def __new__(cls, *args, **kwargs):
+        """Create or re-use a pIceImarisConnector object."""
+        if args and \
+                args[0] is not None and \
+                type(args[0]).__name__ == "pIceImarisConnector":
+            # Reusing passed object
+            return args[0]
+        else:
+            # Creating new object
+            return object.__new__(cls, *args, **kwargs)
 
-    def init(self, *args, **kwds):
-        pass
-    
     def __init__(self, imarisApplication=None, indexingStart=0):
-        """"pIceImarisConnector constructor.
+        """"Initialize the created pIceImarisConnector object.
 
         Arguments:
 
@@ -114,21 +115,23 @@ class pIceImarisConnector:
                             Whatever you choose, be consistent!
 
         """
-        
-        # Assign arguments
+
+        # If imarisApplication is a pIceImarisConnector reference,
+        # we return immediately, because we want to re-use the 
+        # object without changes.
+        if imarisApplication is not None and \
+                type(imarisApplication).__name__ == "pIceImarisConnector":
+            return
+
+        # Check arguments
         if indexingStart != 0 and indexingStart != 1:
             raise ValueError("indexingStart must be either 0 or 1!")
         
         # Store the required paths
         self.findImaris()
 
-        # Add the ImarisLib.jar package to the java class path
-        # (if not there yet)
-        # self._mImarisLib = ????
-        # TODO: Check if this is needed
-            
-        # Create and store an ImarisLib instance
-        # TODO: Check if this is needed
+        # Import the ImarisLib module
+        self._mImarisLib = imp.load_source("ImarisLib", self._mImarisLibPath)
 
         # Assign a random id
         self._mImarisObjectID = random.randint(0, 100000)
@@ -150,7 +153,7 @@ class pIceImarisConnector:
         # Case 0
         if imarisApplication is None:
             # We already did everything
-            pass
+            return
         
         # Case 1
         elif isinstance(imarisApplication, int):
@@ -163,15 +166,9 @@ class pIceImarisConnector:
             if server.GetObjectID(imarisApplication) == -1:
                 raise Exception("Invalid Imaris application ID.")
 
-            self._mImarisApplicarion = self._mImarisLib.GetApplication(imarisApplication)
+            self._mImarisApplication = self._mImarisLib.GetApplication(imarisApplication)
 
         # Case 2
-        elif isinstance(imarisApplication, "pIceImarisConnector"):
-            # The __init__() method took care of passing the
-            # reference; we do not need to do anything else
-            pass
-
-        # Case 3
         elif isinstance(imarisApplication, "Imaris.IApplicationPrxHelper"):
             self._mImarisApplication = imarisApplication
         
@@ -252,7 +249,7 @@ class pIceImarisConnector:
             serverExePath = os.path.join(imarisPath,
                                          'ImarisServerIce.exe')
             libPath = os.path.join(imarisPath,
-                                   'XT', 'matlab', 'ImarisLib.jar')
+                                   'XT', 'python', 'ImarisLib.py')
         elif self.ismac():
             exePath = os.path.join(imarisPath, 
                                    'Contents', 'MacOS', 'Imaris')
@@ -261,7 +258,7 @@ class pIceImarisConnector:
                                          'ImarisServerIce')
             libPath = os.path.join(imarisPath,
                                    'Contents', 'SharedSupport', 'XT',
-                                   'matlab', 'ImarisLib.jar')
+                                   'python', 'ImarisLib.py')
         else:
             raise OSError("pIceImarisConnector only works " + \
                           "on Windows and Mac OS X.")
@@ -275,7 +272,7 @@ class pIceImarisConnector:
         
         # Check whether the ImarisLib jar package exists
         if not os.path.isfile(libPath):
-            raise OSError("Could not find the ImarisLib jar file.")
+            raise OSError("Could not find the ImarisLib module.")
 
         # Now we can store the information and return success
         self._mImarisExePath = exePath
