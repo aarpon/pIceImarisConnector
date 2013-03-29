@@ -13,8 +13,31 @@ Licence    GPL v2
 from pIceImarisConnector import pIceImarisConnector
 
 if __name__ == '__main__':
-    conn = pIceImarisConnector()
-    conn2 = pIceImarisConnector(conn)
-    conn3 = pIceImarisConnector(1)
-    conn.display()
-    conn.info()
+
+    # No parameters
+    conn1 = pIceImarisConnector()
+    print("conn1:")
+    conn1.display()
+    conn1.info()
+    
+    # Pass the existing pIceImarisConnector object - will return the reference
+    conn2 = pIceImarisConnector(conn1)
+    print("conn2:")
+    print("Check: conn1 and conn2 are the same object: " + str(conn1 is conn2))
+    
+    # Try connecting to an open Imaris instance (Imaris must be running!)
+    print("conn3:")
+    try:
+        conn3 = pIceImarisConnector(0)
+        conn3.display()
+        print("Check: conn1 and conn3 are different objects: " + str(conn1 is not conn3))
+        
+        # Use the ImarisApplication object in conn3 to initialize conn4
+        print("conn4:")
+        conn4 = pIceImarisConnector(conn3.mImarisApplication)
+        conn4.display()
+
+    except Exception:
+        print("Imaris must be running for this test!")
+
+    # Try connecting to an open Imaris instance (Imaris must be running!)

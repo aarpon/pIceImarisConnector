@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
 import os
+import sys
 import platform
 import glob
 import re
@@ -130,8 +131,20 @@ class pIceImarisConnector(object):
         # Store the required paths
         self.findImaris()
 
+        # Change to the Imaris path folder. This is needed to make sure
+        # that the required dynamic libraries are imported correctly.
+        os.chdir(self._mImarisPath)
+        
+        # Add the python lib folder to the python path
+        sys.path.append(self._mImarisLibPath)
+        
         # Import the ImarisLib module
-        self._mImarisLib = imp.load_source("ImarisLib", self._mImarisLibPath)
+        fileobj, pathname, description = imp.find_module('ImarisLib')
+        ImarisLib = imp.load_module('ImarisLib', fileobj, pathname, description)
+        fileobj.close()
+
+        # Instantiate and store the ImarisLib object
+        self._mImarisLib = ImarisLib.ImarisLib()
 
         # Assign a random id
         self._mImarisObjectID = random.randint(0, 100000)
@@ -150,26 +163,21 @@ class pIceImarisConnector(object):
         # - an Imaris Application ICE object (rare): we simply assign
         #   it to the mImarisApplication property.
         
-        # Case 0
+        # Case 0: no connection yet
         if imarisApplication is None:
             # We already did everything
             return
         
-        # Case 1
+        # Case 1: we got the ID from Imaris
         elif isinstance(imarisApplication, int):
-            # Check if the application is registered
-            server = self._mImarisLib.GetServer()
-            nApps = server.GetNumberOfObjects()
-            if nApps == 0:
-                raise Exception("There are no registered Imaris applications.")
-
-            if server.GetObjectID(imarisApplication) == -1:
-                raise Exception("Invalid Imaris application ID.")
-
+            # Get the application corresponding to the passed ID
             self._mImarisApplication = self._mImarisLib.GetApplication(imarisApplication)
+            
+            if self._mImarisApplication is None:
+                raise Exception('Could not connect to Imaris!')
 
-        # Case 2
-        elif isinstance(imarisApplication, "Imaris.IApplicationPrxHelper"):
+        # Case 2: we get an ImarisApplication object
+        elif type(imarisApplication).__name__ == "IApplicationPrx":
             self._mImarisApplication = imarisApplication
         
         else:
@@ -248,17 +256,15 @@ class pIceImarisConnector(object):
             exePath = os.path.join(imarisPath, 'Imaris.exe')
             serverExePath = os.path.join(imarisPath,
                                          'ImarisServerIce.exe')
-            libPath = os.path.join(imarisPath,
-                                   'XT', 'python', 'ImarisLib.py')
+            libPath = os.path.join(imarisPath, 'XT', 'python')
         elif self.ismac():
             exePath = os.path.join(imarisPath, 
                                    'Contents', 'MacOS', 'Imaris')
             serverExePath = os.path.join(imarisPath, 
                                          'Contents', 'MacOS',
                                          'ImarisServerIce')
-            libPath = os.path.join(imarisPath,
-                                   'Contents', 'SharedSupport', 'XT',
-                                   'python', 'ImarisLib.py')
+            libPath = os.path.join(imarisPath, 'Contents', 'SharedSupport',
+                                   'XT', 'python')
         else:
             raise OSError("pIceImarisConnector only works " + \
                           "on Windows and Mac OS X.")
@@ -270,10 +276,6 @@ class pIceImarisConnector(object):
         if not os.path.isfile(serverExePath):
             raise OSError("Could not find the ImarisServer executable.")
         
-        # Check whether the ImarisLib jar package exists
-        if not os.path.isfile(libPath):
-            raise OSError("Could not find the ImarisLib module.")
-
         # Now we can store the information and return success
         self._mImarisExePath = exePath
         self._mImarisServerExePath = serverExePath
