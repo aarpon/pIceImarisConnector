@@ -32,6 +32,8 @@ import glob
 import re
 import random
 import imp
+import subprocess
+import time
 
 class pIceImarisConnector(object):
     """pIceImarisConnector is a simple Python class eases communication 
@@ -59,6 +61,24 @@ class pIceImarisConnector(object):
     
     # Imaris ID
     _mImarisObjectID = 0
+    
+    # Use control
+    _mUserControl = 0
+
+    @property
+    def version(self):
+        return self._mVersion
+
+    
+    @property
+    def mImarisApplication(self):
+        return self._mImarisApplication
+
+    
+    @property
+    def indexingStart(self):
+        return self._mIndexingStart
+
 
     def __new__(cls, *args, **kwargs):
         """Create or re-use a pIceImarisConnector object."""
@@ -70,6 +90,7 @@ class pIceImarisConnector(object):
         else:
             # Creating new object
             return object.__new__(cls, *args, **kwargs)
+
 
     def __init__(self, imarisApplication=None, indexingStart=0):
         """"Initialize the created pIceImarisConnector object.
@@ -139,9 +160,7 @@ class pIceImarisConnector(object):
         sys.path.append(self._mImarisLibPath)
         
         # Import the ImarisLib module
-        fileobj, pathname, description = imp.find_module('ImarisLib')
-        ImarisLib = imp.load_module('ImarisLib', fileobj, pathname, description)
-        fileobj.close()
+        ImarisLib = self._importImarisLib()
 
         # Instantiate and store the ImarisLib object
         self._mImarisLib = ImarisLib.ImarisLib()
@@ -183,9 +202,112 @@ class pIceImarisConnector(object):
         else:
             raise Exception("Invalid imarisApplication argument!")
 
+    def closeImaris(self, quiet=False):
+        """close the Imaris instance associated to the pIceImarisConnector
+object and resets the mImarisApplication property
+        
+        Arguments:
+
+        quiet : (optional, default False) If True, Imaris won't pop-up a save
+                dialog and close silently.
+                
+        """ 
+
+        if self.isAlive() == False:
+            return True
+        
+        try:
+            
+            if quiet:
+                self._mImarisApplication.SetVisible(False)
+            
+            self._mImarisApplication.Quit()
+            self._mImarisApplication = None
+            return True
+            
+        except:
+            
+            print("Error: " + str(sys.exc_info()[1]))
+            return False
+
+
+    def startImaris(self, userControl=False):
+        """Starts an Imaris instance and stores the ImarisApplication ICE object.
+        
+        Arguments:
+
+        userControl :   (optional, default False) The optional parameter 
+                        userControl sets the fate of Imaris when the client
+                        is closed: if userControl is True, Imaris terminates
+                        when the pIceImarisConnector object (conn) is deleted.
+                        If is it set to False, Imaris stays open after the
+                        client is closed.
+
+        """
+        
+        # Check the platform
+        if not self._isSupportedPlatform():
+            raise Exception('pIceImarisConnector can only work on Windows and Mac OS X.');
+
+        # Store the userControl
+        self._mUserControl = userControl;
+
+        # If an Imaris instance is open, we close it -- no questions asked
+        if self.isAlive() == True:
+            self.closeImaris(True)
+
+        # Now we open a new one
+        try:
+            
+            # Start ImarisServer
+            self._startImarisServer()
+            
+            # Launch Imaris
+            subprocess.call('"' + self._mImarisExePath + '"', ' id' + \
+                            str(self._mImarisObjectID) + ' &')
+            
+            # Try getting the application over a certain time period in case it
+            # takes to long for Imaris to be registered.
+            for trial in range(1, 200):
+                try:
+                    # A too quick call to mImarisLib.GetApplication() could 
+                    # potentially throw an exception and leave the _mImarisLib
+                    # object in an unusable state. As a workaround, we 
+                    # reinstantiate ImarisLib() at every iteration. This
+                    # will make sure that sooner or later we will get the 
+                    # application.
+                    ImarisLib = self._importImarisLib()
+                    self._mImarisLib = ImarisLib.ImarisLib()
+                    vImaris = self._mImarisLib.GetApplication(self._mImarisObjectID)
+                except:
+                    pass
+                
+                if vImaris is not None:
+                    break
+                
+                time.sleep(0.1)
+    
+            # At this point we should have the application
+            if vImaris is None:
+                print('Could not link to the Imaris application.')
+                return False
+            
+            # We can store the application
+            self._mImarisApplication = vImaris;
+
+            # Return success
+            return True
+    
+        except:
+            print("Error: " + str(sys.exc_info()[1]))
+
+        
     def __del__(self):
         """pIceImarisConnector destructor."""
-        pass
+        if self._mUserControl == 1:
+            if self._mImarisApplication is not None:
+                self.closeImaris()
+
 
     def __str__(self):
         """Converts the pIceImarisConnector object to a string."""
@@ -195,17 +317,6 @@ class pIceImarisConnector(object):
         else:
             return "pIceImarisConnector: connected to Imaris."
 
-    @property
-    def version(self):
-        return self._mVersion
-    
-    @property
-    def mImarisApplication(self):
-        return self._mImarisApplication
-    
-    @property
-    def indexingStart(self):
-        return self._mIndexingStart
 
     def findImaris(self):
         """Gets or discovers the path to the Imaris executable."""
@@ -217,9 +328,9 @@ class pIceImarisConnector(object):
         if imarisPath is None:
             
             # Search for Imaris in reasonable places
-            if self.ispc():
+            if self._ispc():
                 tmp = "C:\\Program Files\\Bitplane"
-            elif self.ismac():
+            elif self._ismac():
                 tmp = "/Applications"
             else:
                 raise OSError("pIceImarisConnector only works " + \
@@ -252,12 +363,12 @@ class pIceImarisConnector(object):
 
         # Set the path to the Imaris and ImarisServer executable and to
         # the ImarisLib library
-        if self.ispc():
+        if self._ispc():
             exePath = os.path.join(imarisPath, 'Imaris.exe')
             serverExePath = os.path.join(imarisPath,
                                          'ImarisServerIce.exe')
             libPath = os.path.join(imarisPath, 'XT', 'python')
-        elif self.ismac():
+        elif self._ismac():
             exePath = os.path.join(imarisPath, 
                                    'Contents', 'MacOS', 'Imaris')
             serverExePath = os.path.join(imarisPath, 
@@ -282,9 +393,24 @@ class pIceImarisConnector(object):
         self._mImarisLibPath = libPath
 
 
+    def isAlive(self):
+        """Checks whether the (stored) connection to Imaris is still alive."""
+        
+        if self._mImarisApplication is None:
+            return False
+        
+        try:
+            self.mImarisApplication.GetVersion()            
+            return True
+        except:
+            self._mImarisApplication = None
+            return False
+
+
     def display(self):
         print(self.__str__())
-    
+
+ 
     def info(self):
         """Print pIceImarisConnector information."""
         print("pIceImarisConnector version " + self.version + " using:")
@@ -292,6 +418,7 @@ class pIceImarisConnector(object):
         print("- Imaris executable: " + self._mImarisExePath)
         print("- ImarisServer executable: " + self._mImarisServerExePath)
         print("- ImarisLib.jar archive: " + self._mImarisLibPath)
+
         
     def _findNewestVersionDir(self, directory):
         """Scans for candidate Imaris directories and returns the one 
@@ -363,12 +490,85 @@ class pIceImarisConnector(object):
                 
         return newestVersionDir
 
-    def ispc(self):
+
+    def _importImarisLib(self):
+        """Import the ImarisLib module."""
+        fileobj, pathname, description = imp.find_module('ImarisLib')
+        ImarisLib = imp.load_module('ImarisLib', fileobj, pathname, description)
+        fileobj.close()
+        return ImarisLib
+    
+    def _startImarisServer(self):
+        """Starts an instance of ImarisServerIce and waits until it is ready
+        to accept connections."""
+
+        # Imaris only runs on Windows and Mac OS X
+        if not self._isSupportedPlatform():
+            raise Exception('IceImarisConnector can only work on Windows and Mac OS X')
+
+        # Check whether an instance of ImarisServerIce is already running. 
+        # If this is the case, we can return success
+        if self._isImarisServerIceRunning():
+            return True
+
+        # We start an instance and wait until it is running before returning
+        # success. We set a 10s time out limit
+        try:
+            # Launch ImarisServer
+            cmd = '\"' + self._mImarisServerExePath + '\" &'
+            result = subprocess.call(cmd)
+            if result is 1:
+                return False
+
+            # Now wait until ImarisIceServer is running (or we time out)
+            t = time.time()
+            timeout = t + 10;
+            while t < timeout:
+                if self._isImarisServerIceRunning() == True:
+                    return True
+                # Update the elapsed time
+                t = time.time();
+            
+        except:
+    
+            print("Error:" + str(sys.exc_info()[1]))
+            return False
+
+
+    def _isImarisServerIceRunning(self):
+        # Checks whether an instance of ImarisServerIce is already running and
+        # can be reused
+        
+        # The check will be different on Windows and on Mac OS X
+        if self._ispc:
+            cmd = "tasklist /NH /FI \"IMAGENAME eq ImarisServerIce.exe\""
+            result = subprocess.check_output(cmd)
+            if "ImarisServerIce.exe" in result:
+                return True
+            
+        elif self._ismac():
+            result = subprocess.call("ps", \
+                                     "aux | grep ImarisServerIce")
+            if self._mImarisServerExePath in result:
+                return True
+        else:
+            raise OSError('Unsupported platform.');
+
+        return False
+
+
+    def _isSupportedPlatform(self):
+        """Returns True if running on a supported platform."""
+        return self._ispc() or self._ismac()
+
+
+    def _ispc(self):
         """Return true if pIceImarisConnector is being run on Windows."""
         
         return platform.system() == "Windows"
+
     
-    def ismac(self):
+    def _ismac(self):
         """Return true if pIceImarisConnector is being run on Mac OS X."""
         
         return platform.system() == "Darwin"

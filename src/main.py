@@ -14,6 +14,8 @@ from pIceImarisConnector import pIceImarisConnector
 
 if __name__ == '__main__':
 
+    isImarisOnForTestThree = False
+    
     # No parameters
     conn1 = pIceImarisConnector()
     print("conn1:")
@@ -25,19 +27,25 @@ if __name__ == '__main__':
     print("conn2:")
     print("Check: conn1 and conn2 are the same object: " + str(conn1 is conn2))
     
-    # Try connecting to an open Imaris instance (Imaris must be running!)
-    print("conn3:")
-    try:
-        conn3 = pIceImarisConnector(0)
-        conn3.display()
-        print("Check: conn1 and conn3 are different objects: " + str(conn1 is not conn3))
+    if isImarisOnForTestThree == True:
+    
+        # Try connecting to an open Imaris instance (Imaris must be running!)
+        print("conn3:")
+        try:
+            conn3 = pIceImarisConnector(0)
+            conn3.display()
+            print("Check: conn1 and conn3 are different objects: " + str(conn1 is not conn3))
         
-        # Use the ImarisApplication object in conn3 to initialize conn4
-        print("conn4:")
-        conn4 = pIceImarisConnector(conn3.mImarisApplication)
-        conn4.display()
+            # Use the ImarisApplication object in conn3 to initialize conn4
+            print("conn4:")
+            conn4 = pIceImarisConnector(conn3.mImarisApplication)
+            conn4.display()
 
-    except Exception:
-        print("Imaris must be running for this test!")
+        except Exception:
+            print("Imaris must be running for this test!")
 
-    # Try connecting to an open Imaris instance (Imaris must be running!)
+    # Try starting an instance of Imaris via pIceImarisConnector
+    print("conn5:")
+    conn5 = pIceImarisConnector()
+    conn5.startImaris()
+    conn5.display()
