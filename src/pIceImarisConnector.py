@@ -34,6 +34,7 @@ import random
 import imp
 import subprocess
 import time
+import string
 
 class pIceImarisConnector(object):
     """pIceImarisConnector is a simple Python class eases communication 
@@ -260,11 +261,24 @@ object and resets the mImarisApplication property
         try:
             
             # Start ImarisServer
-            self._startImarisServer()
-            
+            if not self._startImarisServer():
+                raise Exception("Could not start ImarisServer!")
+
             # Launch Imaris
-            subprocess.call('"' + self._mImarisExePath + '"', ' id' + \
-                            str(self._mImarisObjectID) + ' &')
+            cmd = string.replace(
+                '\"' + self._mImarisExePath + '\"', "\\", "/") + \
+                "id" + str(self._mImarisObjectID)
+            try:
+                subprocess.Popen(cmd, bufsize=-1)
+            except OSError as o:
+                print(o)
+                return False;
+            except ValueError as v:
+                print(v)
+                return False;
+            except WindowsError as e:
+                print(e)
+                return False;
             
             # Try getting the application over a certain time period in case it
             # takes to long for Imaris to be registered.
@@ -511,28 +525,29 @@ object and resets the mImarisApplication property
         if self._isImarisServerIceRunning():
             return True
 
-        # We start an instance and wait until it is running before returning
-        # success. We set a 10s time out limit
+        # We start an instance of ImarisServerIce and wait until it is running
+        # before returning success. We set a 10s time out limit
         try:
-            # Launch ImarisServer
-            cmd = '\"' + self._mImarisServerExePath + '\" &'
-            result = subprocess.call(cmd)
-            if result is 1:
-                return False
-
-            # Now wait until ImarisIceServer is running (or we time out)
-            t = time.time()
-            timeout = t + 10;
-            while t < timeout:
-                if self._isImarisServerIceRunning() == True:
-                    return True
-                # Update the elapsed time
-                t = time.time();
-            
-        except:
-    
-            print("Error:" + str(sys.exc_info()[1]))
+            process = subprocess.Popen(
+                string.replace('\"' + self._mImarisServerExePath + 
+                               '\"', "\\", "/"), bufsize=-1)
+        except WindowsError as e:
+            print(e)
+            return False;
+                
+        if not process:
             return False
+
+        # Now wait until ImarisIceServer is running (or we time out)
+        t = time.time()
+        timeout = t + 10;
+        while t < timeout:
+            if self._isImarisServerIceRunning() == True:
+                return True
+            # Update the elapsed time
+            t = time.time();
+            
+        return False
 
 
     def _isImarisServerIceRunning(self):
@@ -547,8 +562,8 @@ object and resets the mImarisApplication property
                 return True
             
         elif self._ismac():
-            result = subprocess.call("ps", \
-                                     "aux | grep ImarisServerIce")
+            result = subprocess.call(["ps", \
+                                     "aux | grep ImarisServerIce"])
             if self._mImarisServerExePath in result:
                 return True
         else:
