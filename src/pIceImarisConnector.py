@@ -202,6 +202,23 @@ class pIceImarisConnector(object):
         else:
             raise Exception("Invalid imarisApplication argument!")
 
+
+    def __del__(self):
+        """pIceImarisConnector destructor."""
+        if self._mUserControl == 1:
+            if self._mImarisApplication is not None:
+                self.closeImaris()
+
+
+    def __str__(self):
+        """Converts the pIceImarisConnector object to a string."""
+        if self._mImarisApplication is None: 
+            return "pIceImarisConnector: not connected to an Imaris " \
+                  "instance yet."
+        else:
+            return "pIceImarisConnector: connected to Imaris."
+        
+
     def closeImaris(self, quiet=False):
         """close the Imaris instance associated to the pIceImarisConnector
 object and resets the mImarisApplication property
@@ -231,6 +248,117 @@ object and resets the mImarisApplication property
             return False
 
 
+    def display(self):
+        """Display the string representation of the pIceImarisConnector object."""
+        
+        print(self.__str__())
+
+ 
+    def getExtends(self):
+        """Returns the dataset extends."""
+        
+        return (self._mImarisApplication.GetDataSet().GetExtendMinX(),
+                self._mImarisApplication.GetDataSet().GetExtendMaxY(),
+                self._mImarisApplication.GetDataSet().GetExtendMinY(),
+                self._mImarisApplication.GetDataSet().GetExtendMaxY(),
+                self._mImarisApplication.GetDataSet().GetExtendMinZ(),
+                self._mImarisApplication.GetDataSet().GetExtendMaxZ())
+
+
+    def getImarisVersionAsInteger(self):
+        """Returns the Imaris version as an integer"""
+
+        # Is Imaris running?
+        if not self.isAlive():
+            return 0
+
+        # Get the version string and extract the major, minor and patch versions
+        # The version must be in the form M.N.P
+        version = self.mImarisApplication.GetVersion()
+        
+        # Parse version
+        match = re.search(r'(\d)+\.(\d)+\.+(\d)?', version)
+        if not match:
+            raise Exception("Could not retrieve version information from Imaris.")
+        
+        # Get the major, minor and patch versions
+        groups = match.groups()
+            
+        major = int(groups[0])
+        if major is None:
+            # Must be defined
+            raise Exception("Invalid version information!")
+
+        minor = int(groups[1])
+        if minor is None:
+            # Must be defined
+            raise Exception("Invalid version information!")
+
+        patch = int(groups[2])
+        if patch is None:
+            # In case the patch version is not set we assume 0 is meant
+            patch = 0
+
+        # Compute version as integer
+        version = 1e6 * major + 1e4 * minor + 1e2 * patch
+        
+        return int(version)
+
+
+    def getSizes(self):
+        """Returns the dataset sizes."""
+        
+        return (self._mImarisApplication.GetDataSet().GetSizeX(),
+                self._mImarisApplication.GetDataSet().GetSizeY(),
+                self._mImarisApplication.GetDataSet().GetSizeZ(),
+                self._mImarisApplication.GetDataSet().GetSizeC(),
+                self._mImarisApplication.GetDataSet().GetSizeT())
+
+
+    def getVoxelSizes(self):
+        """Returns the X, Y, and Z voxel sizes of the dataset."""
+
+        # Voxel size X
+        vX = (self._mImarisApplication.GetDataSet().GetExtendMaxX() - \
+              self._mImarisApplication.GetDataSet().GetExtendMinX()) / \
+              self._mImarisApplication.GetDataSet().GetSizeX();
+
+        # Voxel size Y
+        vY = (self._mImarisApplication.GetDataSet().GetExtendMaxY() - \
+              self._mImarisApplication.GetDataSet().GetExtendMinY()) / \
+              self._mImarisApplication.GetDataSet().GetSizeY();
+
+        # Voxel size Z
+        vZ = (self._mImarisApplication.GetDataSet().GetExtendMaxZ() - \
+              self._mImarisApplication.GetDataSet().GetExtendMinZ()) / \
+              self._mImarisApplication.GetDataSet().GetSizeZ();
+        
+        return (vX, vY, vZ)
+
+
+    def info(self):
+        """Print pIceImarisConnector information."""
+        print("pIceImarisConnector version " + self.version + " using:")
+        print("- Imaris path: " + self._mImarisPath)
+        print("- Imaris executable: " + self._mImarisExePath)
+        print("- ImarisServer executable: " + self._mImarisServerExePath)
+        print("- ImarisLib.jar archive: " + self._mImarisLibPath)
+
+
+    def isAlive(self):
+        """Checks whether the (stored) connection to Imaris is still alive."""
+        
+        if self._mImarisApplication is None:
+            return False
+        
+        try:
+            self.mImarisApplication.GetVersion()            
+            return True
+        except:
+            self._mImarisApplication = None
+            return False
+
+                    
     def startImaris(self, userControl=False):
         """Starts an Imaris instance and stores the ImarisApplication ICE object.
         
@@ -318,65 +446,13 @@ object and resets the mImarisApplication property
         except:
             print("Error: " + str(sys.exc_info()[1]))
 
-    
-    
-    def getExtends(self):
-        """Returns the dataset extends."""
-        
-        return (self._mImarisApplication.GetDataSet().GetExtendMinX(),
-                self._mImarisApplication.GetDataSet().GetExtendMaxY(),
-                self._mImarisApplication.GetDataSet().GetExtendMinY(),
-                self._mImarisApplication.GetDataSet().GetExtendMaxY(),
-                self._mImarisApplication.GetDataSet().GetExtendMinZ(),
-                self._mImarisApplication.GetDataSet().GetExtendMaxZ())
 
-    def getSizes(self):
-        """Returns the dataset sizes."""
-        
-        return (self._mImarisApplication.GetDataSet().GetSizeX(),
-                self._mImarisApplication.GetDataSet().GetSizeY(),
-                self._mImarisApplication.GetDataSet().GetSizeZ(),
-                self._mImarisApplication.GetDataSet().GetSizeC(),
-                self._mImarisApplication.GetDataSet().GetSizeT())
-
-
-    def getVoxelSizes(self):
-        """Returns the X, Y, and Z voxel sizes of the dataset."""
-
-        # Voxel size X
-        vX = (self._mImarisApplication.GetDataSet().GetExtendMaxX() - \
-              self._mImarisApplication.GetDataSet().GetExtendMinX()) / \
-              self._mImarisApplication.GetDataSet().GetSizeX();
-
-        # Voxel size Y
-        vY = (self._mImarisApplication.GetDataSet().GetExtendMaxY() - \
-              self._mImarisApplication.GetDataSet().GetExtendMinY()) / \
-              self._mImarisApplication.GetDataSet().GetSizeY();
-
-        # Voxel size Z
-        vZ = (self._mImarisApplication.GetDataSet().GetExtendMaxZ() - \
-              self._mImarisApplication.GetDataSet().GetExtendMinZ()) / \
-              self._mImarisApplication.GetDataSet().GetSizeZ();
-        
-        return (vX, vY, vZ)
-
-                    
-    def __del__(self):
-        """pIceImarisConnector destructor."""
-        if self._mUserControl == 1:
-            if self._mImarisApplication is not None:
-                self.closeImaris()
-
-
-    def __str__(self):
-        """Converts the pIceImarisConnector object to a string."""
-        if self._mImarisApplication is None: 
-            return "pIceImarisConnector: not connected to an Imaris " \
-                  "instance yet."
-        else:
-            return "pIceImarisConnector: connected to Imaris."
-
-
+    # --------------------------------------------------------------------------
+    #
+    # PRIVATE METHODS
+    #
+    # --------------------------------------------------------------------------
+            
     def _findImaris(self):
         """Gets or discovers the path to the Imaris executable."""
         
@@ -451,76 +527,7 @@ object and resets the mImarisApplication property
         self._mImarisServerExePath = serverExePath
         self._mImarisLibPath = libPath
 
-
-    def getImarisVersionAsInteger(self):
-        """Returns the Imaris version as an integer"""
-
-        # Is Imaris running?
-        if not self.isAlive():
-            return 0
-
-        # Get the version string and extract the major, minor and patch versions
-        # The version must be in the form M.N.P
-        version = self.mImarisApplication.GetVersion()
-        
-        # Parse version
-        match = re.search(r'(\d)+\.(\d)+\.+(\d)?', version)
-        if not match:
-            raise Exception("Could not retrieve version information from Imaris.")
-        
-        # Get the major, minor and patch versions
-        groups = match.groups()
-            
-        major = int(groups[0])
-        if major is None:
-            # Must be defined
-            raise Exception("Invalid version information!")
-
-        minor = int(groups[1])
-        if minor is None:
-            # Must be defined
-            raise Exception("Invalid version information!")
-
-        patch = int(groups[2])
-        if patch is None:
-            # In case the patch version is not set we assume 0 is meant
-            patch = 0
-
-        # Compute version as integer
-        version = 1e6 * major + 1e4 * minor + 1e2 * patch
-        
-        return int(version)
-
-    
-    def isAlive(self):
-        """Checks whether the (stored) connection to Imaris is still alive."""
-        
-        if self._mImarisApplication is None:
-            return False
-        
-        try:
-            self.mImarisApplication.GetVersion()            
-            return True
-        except:
-            self._mImarisApplication = None
-            return False
-
-
-    def display(self):
-        """Display the string representation of the pIceImarisConnector object."""
-        
-        print(self.__str__())
-
  
-    def info(self):
-        """Print pIceImarisConnector information."""
-        print("pIceImarisConnector version " + self.version + " using:")
-        print("- Imaris path: " + self._mImarisPath)
-        print("- Imaris executable: " + self._mImarisExePath)
-        print("- ImarisServer executable: " + self._mImarisServerExePath)
-        print("- ImarisLib.jar archive: " + self._mImarisLibPath)
-
-        
     def _findNewestVersionDir(self, directory):
         """Scans for candidate Imaris directories and returns the one 
         with highest version number. For internal use only!
@@ -599,7 +606,46 @@ object and resets the mImarisApplication property
         ImarisLib = imp.load_module('ImarisLib', fileobj, pathname, description)
         fileobj.close()
         return ImarisLib
+
+
+    def _isImarisServerIceRunning(self):
+        # Checks whether an instance of ImarisServerIce is already running and
+        # can be reused
+        
+        # The check will be different on Windows and on Mac OS X
+        if self._ispc:
+            cmd = "tasklist /NH /FI \"IMAGENAME eq ImarisServerIce.exe\""
+            result = subprocess.check_output(cmd)
+            if "ImarisServerIce.exe" in result:
+                return True
+            
+        elif self._ismac():
+            result = subprocess.call(["ps", \
+                                     "aux | grep ImarisServerIce"])
+            if self._mImarisServerExePath in result:
+                return True
+        else:
+            raise OSError('Unsupported platform.');
+
+        return False
+
+
+    def _ismac(self):
+        """Return true if pIceImarisConnector is being run on Mac OS X."""
+        
+        return platform.system() == "Darwin"
+
+
+    def _ispc(self):
+        """Return true if pIceImarisConnector is being run on Windows."""
+        
+        return platform.system() == "Windows"
+
     
+    def _isSupportedPlatform(self):
+        """Returns True if running on a supported platform."""
+        return self._ispc() or self._ismac()
+
 
     def _startImarisServer(self):
         """Starts an instance of ImarisServerIce and waits until it is ready
@@ -635,42 +681,3 @@ object and resets the mImarisApplication property
             t = time.time();
             
         return False
-
-
-    def _isImarisServerIceRunning(self):
-        # Checks whether an instance of ImarisServerIce is already running and
-        # can be reused
-        
-        # The check will be different on Windows and on Mac OS X
-        if self._ispc:
-            cmd = "tasklist /NH /FI \"IMAGENAME eq ImarisServerIce.exe\""
-            result = subprocess.check_output(cmd)
-            if "ImarisServerIce.exe" in result:
-                return True
-            
-        elif self._ismac():
-            result = subprocess.call(["ps", \
-                                     "aux | grep ImarisServerIce"])
-            if self._mImarisServerExePath in result:
-                return True
-        else:
-            raise OSError('Unsupported platform.');
-
-        return False
-
-
-    def _isSupportedPlatform(self):
-        """Returns True if running on a supported platform."""
-        return self._ispc() or self._ismac()
-
-
-    def _ispc(self):
-        """Return true if pIceImarisConnector is being run on Windows."""
-        
-        return platform.system() == "Windows"
-
-    
-    def _ismac(self):
-        """Return true if pIceImarisConnector is being run on Mac OS X."""
-        
-        return platform.system() == "Darwin"
