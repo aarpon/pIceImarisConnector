@@ -34,7 +34,6 @@ import random
 import imp
 import subprocess
 import time
-import string
 
 class pIceImarisConnector(object):
     """pIceImarisConnector is a simple Python class eases communication 
@@ -280,7 +279,8 @@ object and resets the mImarisApplication property
             
             # Try getting the application over a certain time period in case it
             # takes to long for Imaris to be registered.
-            for trial in range(1, 200):
+            nAttempts = 0
+            while nAttempts < 200:
                 try:
                     # A too quick call to mImarisLib.GetApplication() could 
                     # potentially throw an exception and leave the _mImarisLib
@@ -300,7 +300,10 @@ object and resets the mImarisApplication property
                 
                 # Try again in 0.1 s
                 time.sleep(0.1)
-    
+                
+                # Increment nAttemps
+                nAttempts += 1
+
             # At this point we should have the application
             if vImaris is None:
                 print('Could not link to the Imaris application.')
@@ -315,7 +318,40 @@ object and resets the mImarisApplication property
         except:
             print("Error: " + str(sys.exc_info()[1]))
 
+    
+    
+    def getExtends(self):
+        """Returns the dataset extends."""
         
+        return (self._mImarisApplication.GetDataSet().GetExtendMinX(),
+                self._mImarisApplication.GetDataSet().GetExtendMaxY(),
+                self._mImarisApplication.GetDataSet().GetExtendMinY(),
+                self._mImarisApplication.GetDataSet().GetExtendMaxY(),
+                self._mImarisApplication.GetDataSet().GetExtendMinZ(),
+                self._mImarisApplication.GetDataSet().GetExtendMaxZ())
+
+
+    def getVoxelSizes(self):
+        """Returns the X, Y, and Z voxel sizes of the dataset."""
+
+        # Voxel size X
+        vX = (self._mImarisApplication.GetDataSet().GetExtendMaxX() - \
+              self._mImarisApplication.GetDataSet().GetExtendMinX()) / \
+              self._mImarisApplication.GetDataSet().GetSizeX();
+
+        # Voxel size Y
+        vY = (self._mImarisApplication.GetDataSet().GetExtendMaxY() - \
+              self._mImarisApplication.GetDataSet().GetExtendMinY()) / \
+              self._mImarisApplication.GetDataSet().GetSizeY();
+
+        # Voxel size Z
+        vZ = (self._mImarisApplication.GetDataSet().GetExtendMaxZ() - \
+              self._mImarisApplication.GetDataSet().GetExtendMinZ()) / \
+              self._mImarisApplication.GetDataSet().GetSizeZ();
+        
+        return (vX, vY, vZ)
+
+                    
     def __del__(self):
         """pIceImarisConnector destructor."""
         if self._mUserControl == 1:
