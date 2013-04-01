@@ -151,7 +151,7 @@ class pIceImarisConnector(object):
             raise ValueError("indexingStart must be either 0 or 1!")
         
         # Store the required paths
-        self.findImaris()
+        self._findImaris()
 
         # Change to the Imaris path folder. This is needed to make sure
         # that the required dynamic libraries are imported correctly.
@@ -214,7 +214,7 @@ object and resets the mImarisApplication property
                 
         """ 
 
-        if self.isAlive() == False:
+        if not self.isAlive():
             return True
         
         try:
@@ -265,11 +265,9 @@ object and resets the mImarisApplication property
                 raise Exception("Could not start ImarisServer!")
 
             # Launch Imaris
-            cmd = string.replace(
-                '\"' + self._mImarisExePath + '\"', "\\", "/") + \
-                "id" + str(self._mImarisObjectID)
+            args = "id" + str(self._mImarisObjectID)
             try:
-                subprocess.Popen(cmd, bufsize=-1)
+                subprocess.Popen([self._mImarisExePath, args], bufsize=-1)
             except OSError as o:
                 print(o)
                 return False;
@@ -294,11 +292,13 @@ object and resets the mImarisApplication property
                     self._mImarisLib = ImarisLib.ImarisLib()
                     vImaris = self._mImarisLib.GetApplication(self._mImarisObjectID)
                 except:
+                    print("Exception when trying to get the Application from ImariServer")
                     pass
                 
                 if vImaris is not None:
                     break
                 
+                # Try again in 0.1 s
                 time.sleep(0.1)
     
             # At this point we should have the application
@@ -332,7 +332,7 @@ object and resets the mImarisApplication property
             return "pIceImarisConnector: connected to Imaris."
 
 
-    def findImaris(self):
+    def _findImaris(self):
         """Gets or discovers the path to the Imaris executable."""
         
         # Try getting the environment variable IMARISPATH 
@@ -407,6 +407,46 @@ object and resets the mImarisApplication property
         self._mImarisLibPath = libPath
 
 
+    def getImarisVersionAsInteger(self):
+        """Returns the Imaris version as an integer"""
+
+        # Is Imaris running?
+        if not self.isAlive():
+            return 0
+
+        # Get the version string and extract the major, minor and patch versions
+        # The version must be in the form M.N.P
+        version = self.mImarisApplication.GetVersion()
+        
+        # Parse version
+        match = re.search(r'(\d)+\.(\d)+\.+(\d)?', version)
+        if not match:
+            raise Exception("Could not retrieve version information from Imaris.")
+        
+        # Get the major, minor and patch versions
+        groups = match.groups()
+            
+        major = int(groups[0])
+        if major is None:
+            # Must be defined
+            raise Exception("Invalid version information!")
+
+        minor = int(groups[1])
+        if minor is None:
+            # Must be defined
+            raise Exception("Invalid version information!")
+
+        patch = int(groups[2])
+        if patch is None:
+            # In case the patch version is not set we assume 0 is meant
+            patch = 0
+
+        # Compute version as integer
+        version = 1e6 * major + 1e4 * minor + 1e2 * patch
+        
+        return int(version)
+
+    
     def isAlive(self):
         """Checks whether the (stored) connection to Imaris is still alive."""
         
@@ -422,6 +462,8 @@ object and resets the mImarisApplication property
 
 
     def display(self):
+        """Display the string representation of the pIceImarisConnector object."""
+        
         print(self.__str__())
 
  
@@ -495,7 +537,7 @@ object and resets the mImarisApplication property
                 patch = 0
 
             # Compute version as integer
-            version = 1e6 * major + 1e4 * minor + 1e2 * patch
+            version = int(1e6 * major + 1e4 * minor + 1e2 * patch)
             
             # Is it the newest yet?
             if version > newestVersion:
@@ -507,11 +549,13 @@ object and resets the mImarisApplication property
 
     def _importImarisLib(self):
         """Import the ImarisLib module."""
+        
         fileobj, pathname, description = imp.find_module('ImarisLib')
         ImarisLib = imp.load_module('ImarisLib', fileobj, pathname, description)
         fileobj.close()
         return ImarisLib
     
+
     def _startImarisServer(self):
         """Starts an instance of ImarisServerIce and waits until it is ready
         to accept connections."""
@@ -528,9 +572,7 @@ object and resets the mImarisApplication property
         # We start an instance of ImarisServerIce and wait until it is running
         # before returning success. We set a 10s time out limit
         try:
-            process = subprocess.Popen(
-                string.replace('\"' + self._mImarisServerExePath + 
-                               '\"', "\\", "/"), bufsize=-1)
+            process = subprocess.Popen(self._mImarisServerExePath, bufsize=-1)
         except WindowsError as e:
             print(e)
             return False;

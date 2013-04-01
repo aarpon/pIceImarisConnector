@@ -47,5 +47,10 @@ if __name__ == '__main__':
     # Try starting an instance of Imaris via pIceImarisConnector
     print("conn5:")
     conn5 = pIceImarisConnector()
-    conn5.startImaris()
+    if not conn5.startImaris():
+        print("Could not start Imaris!")
+        exit()
+
     conn5.display()
+    print(conn5.getImarisVersionAsInteger())
+    conn5.closeImaris(True)
