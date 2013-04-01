@@ -330,6 +330,15 @@ object and resets the mImarisApplication property
                 self._mImarisApplication.GetDataSet().GetExtendMinZ(),
                 self._mImarisApplication.GetDataSet().GetExtendMaxZ())
 
+    def getSizes(self):
+        """Returns the dataset sizes."""
+        
+        return (self._mImarisApplication.GetDataSet().GetSizeX(),
+                self._mImarisApplication.GetDataSet().GetSizeY(),
+                self._mImarisApplication.GetDataSet().GetSizeZ(),
+                self._mImarisApplication.GetDataSet().GetSizeC(),
+                self._mImarisApplication.GetDataSet().GetSizeT())
+
 
     def getVoxelSizes(self):
         """Returns the X, Y, and Z voxel sizes of the dataset."""

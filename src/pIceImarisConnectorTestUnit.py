@@ -82,52 +82,43 @@ if __name__ == '__main__':
     print('Check the dataset extends...')
     EXTENDS = (-0.1140, 57.8398, -0.1140, 57.8398, -0.1510, 20.6310)
     extends = conn.getExtends()
-    assert(abs(extends[0] - EXTENDS[0]) < 1e-4)
-    assert(abs(extends[1] - EXTENDS[1]) < 1e-4)
-    assert(abs(extends[2] - EXTENDS[2]) < 1e-4)
-    assert(abs(extends[3] - EXTENDS[3]) < 1e-4)
-    assert(abs(extends[4] - EXTENDS[4]) < 1e-4)
-    assert(abs(extends[5] - EXTENDS[5]) < 1e-4)
+    assert(all([abs(x - y) < 1e-4 for x, y in zip(EXTENDS, extends)]))
      
     minX, maxX, minY, maxY, minZ, maxZ = conn.getExtends()
-    assert(abs(minX - EXTENDS[0]) < 1e-4)
-    assert(abs(maxX - EXTENDS[1]) < 1e-4)
-    assert(abs(minY - EXTENDS[2]) < 1e-4)
-    assert(abs(maxY - EXTENDS[3]) < 1e-4)
-    assert(abs(minZ - EXTENDS[4]) < 1e-4)
-    assert(abs(maxZ - EXTENDS[5]) < 1e-4)
+    assert(all([abs(x - y) < 1e-4 for x, y in \
+                zip(EXTENDS, (minX, maxX, minY, maxY, minZ, maxZ))]))
     
     # Check the voxel size
     # =========================================================================
     print('Check the voxel size...')
-    VOXELSIZE = (0.2273, 0.2282, 0.3012)
-    voxelSize = conn.getVoxelSizes()
-    assert(abs(voxelSize[0] - VOXELSIZE[0]) < 1e-4)
-    assert(abs(voxelSize[1] - VOXELSIZE[1]) < 1e-4)
-    assert(abs(voxelSize[2] - VOXELSIZE[2]) < 1e-4)
+    VOXELSIZES = (0.2273, 0.2282, 0.3012)
+    voxelSizes = conn.getVoxelSizes()
+    assert(all([abs(x - y) < 1e-4 for x, y in zip(VOXELSIZES, voxelSizes)]))
  
     vX, vY, vZ = conn.getVoxelSizes()
-    assert(abs(vX - VOXELSIZE[0]) < 1e-4)
-    assert(abs(vY - VOXELSIZE[1]) < 1e-4)
-    assert(abs(vZ - VOXELSIZE[2]) < 1e-4)
+    assert(all([abs(x - y) < 1e-4 for x, y in zip(VOXELSIZES, (vX, vY, vZ))]))
+
+    # Check the dataset size
+    #
+    #   X = 255
+    #   Y = 254
+    #   Z =  69
+    #   C =   1
+    #   T =   1
+    #
+    # =========================================================================
+    print('Check the dataset size...')
+    DATASETSIZE = (255, 254, 69, 1, 1)
+    sizes = conn.getSizes()
+    assert(DATASETSIZE == sizes)    
+    
+    sizeX, sizeY, sizeZ, sizeC, sizeT = conn.getSizes()
+    assert(sizeX == DATASETSIZE[0])
+    assert(sizeY == DATASETSIZE[1])
+    assert(sizeZ == DATASETSIZE[2])
+    assert(sizeC == DATASETSIZE[3])
+    assert(sizeT == DATASETSIZE[4])
  
-    # # Check the dataset size
-    # #
-    # #   X = 255
-    # #   Y = 254
-    # #   Z =  69
-    # #   C =   1
-    # #   T =   1
-    # #
-    # # =========================================================================
-    # print('Check the dataset size...')
-    # DATASETSIZE = [255 254 69 1 1]
-    # sizes = conn.getSizes()
-    # assert(all(sizes == DATASETSIZE) == 1)
-    # 
-    # [sizeX sizeY sizeZ sizeC sizeT] = conn.getSizes()
-    # assert(all([sizeX sizeY sizeZ sizeC sizeT] == DATASETSIZE) == 1)
-    # 
     # # Get a spot object, its coordinates and check the unit conversions
     # # =========================================================================
     # print('Count all children at root level...')
