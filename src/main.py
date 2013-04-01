@@ -10,7 +10,7 @@ Copyright  (c) Aaron Ponti 2013
 Licence    GPL v2
 '''
 
-from pIceImarisConnector.pIceImarisConnector import pIceImarisConnector
+from pIceImarisConnector import pIceImarisConnector
 
 if __name__ == '__main__':
 
