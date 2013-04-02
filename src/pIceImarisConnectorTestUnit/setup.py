@@ -1,6 +1,6 @@
 # pIceImarisConnector setup script
 from distutils.core import setup
-setup(name='pIceImarisConnectortTestUni',
+setup(name='pIceImarisConnectortTestUnit',
       license='GPL v2',
       version='0.2.0',
       description='pIceImarisConnectorTestUnit is the pIceImarisConnector test unit.',

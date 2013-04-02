@@ -119,20 +119,21 @@ if __name__ == '__main__':
     assert(sizeC == DATASETSIZE[3])
     assert(sizeT == DATASETSIZE[4])
  
-    # # Get a spot object, its coordinates and check the unit conversions
-    # # =========================================================================
-    # print('Count all children at root level...')
-    # children = conn.getAllSurpassChildren(0) # No recursion
-    # assert(numel(children) == 4)
-    # 
-    # # If the casting in getAllSurpassChildren() works, spot is an actual
-    # # spot object, and not an IDataItem. If the casting worked, the object will
-    # # have a method 'GetPositionsXYZ'.
-    # print('Test autocasting...')
-    # child = conn.getAllSurpassChildren(0, 'Spots')
-    # spot = child{ 1 }
-    # assert(ismethod(spot, 'GetPositionsXYZ'))
-    # 
+    # Get a spot object, its coordinates and check the unit conversions
+    # =========================================================================
+    print('Count all children at root level...')
+    children = conn.getAllSurpassChildren(False) # No recursion
+    assert(len(children) == 4)
+     
+    # If the casting in getAllSurpassChildren() works, spot is an actual
+    # spot object, and not an IDataItem. If the casting worked, the object will
+    # have a method 'GetPositionsXYZ'.
+    print('Test autocasting...')
+    child = conn.getAllSurpassChildren(False, 'Spots')
+    assert(len(child) == 1)
+    spot = child[ 0 ]
+    assert(callable(getattr(spot, 'GetPositionsXYZ')) == True)
+    
     # # Get the coordinates
     # pos = spot.GetPositionsXYZ
     # 

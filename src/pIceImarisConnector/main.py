@@ -218,7 +218,68 @@ class pIceImarisConnector(object):
         else:
             return "pIceImarisConnector: connected to Imaris."
         
+    
+    def autocast(self, dataItem):
+        """Casts IDataItems to their derived types.
+        
+        Arguments:
+        
+        dataItem: an Imaris::IDataItem object
+        
+        returns one of the Imaris::IDataItem subclasses:
+                                 - Imaris::IClippingPlane
+                                 - Imaris::IDataContainer
+                                 - Imaris::IFilaments
+                                 - Imaris::IFrame
+                                 - Imaris::IDataSet
+                                 - Imaris::IICells
+                                 - Imaris::ILightSource
+                                 - Imaris::IMeasurementPoints
+                                 - Imaris::ISpots
+                                 - Imaris::ISurfaces
+                                 - Imaris::IVolume
+                                 - Imaris::ISurpassCamera
+                                 - Imaris::IImageProcessing
+                                 - Imaris::IFactory
+        """
+        
+        # Get the factory
+        factory = self.mImarisApplication.GetFactory()
+        
+        if factory.IsLightSource(dataItem):
+            return factory.ToLightSource(dataItem);
+        elif factory.IsFrame(dataItem):
+            return factory.ToFrame(dataItem);
+        elif factory.IsVolume(dataItem):
+            return factory.ToVolume(dataItem); 
+        elif factory.IsSpots(dataItem):
+            return factory.ToSpots(dataItem);
+        elif factory.IsSurfaces(dataItem):
+            return factory.ToSurfaces(dataItem);
+        elif factory.IsDataSet(dataItem):
+            return factory.ToDataSet(dataItem);
+        elif factory.IsSurpassCamera(dataItem):
+            return factory.ToSurpassCamera(dataItem);  
+        elif factory.IsFilaments(dataItem):
+            return factory.ToFilaments(dataItem);  
+        elif factory.IsClippingPlane(dataItem):
+            return factory.ToClippingPlane(dataItem);
+        elif factory.IsApplication(dataItem):
+            return factory.ToApplication(dataItem);
+        elif factory.IsMeasurementPoints(dataItem):
+            return factory.ToMeasurementPoints(dataItem);
+        elif factory.IsDataContainer(dataItem):
+            return factory.ToDataContainer(dataItem);  
+        elif factory.IsCells(dataItem):
+            return factory.ToCells(dataItem);
+        elif factory.IsFactory(dataItem):
+            return factory.ToFactory(dataItem);
+        elif factory.IsImageProcessing(dataItem):
+            return factory.ToImageProcessing(dataItem);
+        else:
+            raise ValueError('Invalid IDataItem object!')
 
+    
     def closeImaris(self, quiet=False):
         """close the Imaris instance associated to the pIceImarisConnector
 object and resets the mImarisApplication property
@@ -253,6 +314,117 @@ object and resets the mImarisApplication property
         
         print(self.__str__())
 
+    def getAllSurpassChildren(self, recursive, typeFilter=None):
+        """Returns all children of the surpass scene recursively.
+Folders (i.e. IDataContainer objects) may be scanned (recursively)
+but are not returned. Optionally, the returned objects may be filtered
+by type.
+
+        Arguments:
+        
+        recursive:  {True | False} If True, folders will be scanned recursively;
+                    if False, only objects at root level will be inspected.
+
+        typeFilter: {True | False} (optional, default False) Filters the 
+                    children by type. Only the surpass children of the 
+                    specified type are returned; typeFilter is one of:
+
+                           'Cells'
+                           'ClippingPlane'
+                           'Dataset'
+                           'Filaments'
+                           'Frame'
+                           'LightSource'
+                           'MeasurementPoints'
+                           'Spots'
+                           'Surfaces'
+                           'SurpassCamera'
+                           'Volume'
+        
+        """
+        
+        # Check that recursive is boolen
+        if recursive is not True and recursive is not False:
+            raise ValueError("Invalid value for ''recursive''.")
+
+        # Possible filter values
+        if typeFilter is not None:
+            possibleTypeFilters = ["Cells", "ClippingPlane", "Dataset", \
+                                   "Frame", "LightSource", \
+                                   "MeasurementPoints", "Spots", \
+                                   "Surfaces", "SurpassCamera", "Volume"]
+
+            if not typeFilter in possibleTypeFilters:
+                raise ValueError("Invalid value for ''typeFilter''.")
+        
+        # Check that there is a Surpass Scene and there are children
+        surpassScene = self.mImarisApplication.GetSurpassScene()
+        if surpassScene is None:
+            return []
+        
+        if surpassScene.GetNumberOfChildren() == 0:
+            return []
+        
+        # Scan the children recursively. For performance reasons, we use a 
+        # separate function for the case where filtering is requested.
+        children = []
+        if typeFilter is None:
+            children = self._getChildrenAtLevel(surpassScene,
+                                                recursive,
+                                                children)
+        else:
+            children = self._getFilteredChildrenAtLevel(surpassScene, 
+                                                        recursive, 
+                                                        typeFilter,
+                                                        children)
+
+        return children
+
+
+    def getDataVolume(self, channel, timepoint, iDataSet=None):
+        """Returns the data volume from Imaris."""
+        
+        if not self.isAlive():
+            return None
+        
+        if iDataSet is None:
+            iDataSet = self.mImarisApplication.GetDataSet()
+        else:
+            # Is the passed argument a valid iDataSet? 
+            if not self.mImarisApplication.GetFactory.IsDataset(iDataSet):
+                raise Exception("Invalid IDataSet object.")
+        
+        if iDataSet.GetSizeX() == 0:
+            return None
+        
+        #  Convert channel and timepoint to 0-based indexing
+        channel = channel - self._mIndexingStart
+        timepoint = timepoint - self._mIndexingStart
+        
+        # Check that the requested channel and timepoint exist
+        if channel > iDataSet.GetSizeC() - 1:
+            raise Exception("The requested channel index is out of bounds!")        
+        if timepoint > iDataSet.GetSizeT() - 1:
+            raise Exception("The requested time index is out of bounds!")
+        
+        # Get the dataset class
+        imarisDataType = str(iDataSet.GetType())
+        if imarisDataType == "eTypeUInt8":
+            stack = iDataSet.GetDataVolumeAs1DArrayBytes(channel, timepoint)
+        elif imarisDataType == "eTypeUInt16":
+            stack = iDataSet.GetDataVolumeAs1DArrayShorts(channel, timepoint)
+        elif imarisDataType == "eTypeFloat":
+            stack = iDataSet.GetDataVolumeAs1DArrayFloats(channel, timepoint)
+        else:
+            raise Exception("Bad value for iDataSet::getType().")
+        
+        # Allocate memory
+        # TODO
+        
+        # Get the stack
+        
+        
+        return stack
  
     def getExtends(self):
         """Returns the dataset extends."""
@@ -314,7 +486,50 @@ object and resets the mImarisApplication property
                 self._mImarisApplication.GetDataSet().GetSizeC(),
                 self._mImarisApplication.GetDataSet().GetSizeT())
 
+    def getSurpassSelection(self, typeFilter=None):
+        """Returns the auto-casted current surpass selection. If
+the 'typeFilter' parameter is specified, the object class is checked
+against it and None is returned instead of the object if the type
+does not match.
 
+        Arguments:
+        
+        typeFilter: {True | False} (optional, default False) Specifies
+                    the expected object class. If the selected object
+                    is not of the specified type, the function will 
+                    return None instead. Type is one of:
+
+                           'Cells'
+                           'ClippingPlane'
+                           'Dataset'
+                           'Filaments'
+                           'Frame'
+                           'LightSource'
+                           'MeasurementPoints'
+                           'Spots'
+                           'Surfaces'
+                           'SurpassCamera'
+                           'Volume'
+        
+        """
+        
+        # Is Imaris running?
+        if not self.isAlive():
+            return None
+    
+        # Get current selection
+        selection = self.autocast(self.mImarisApplication.GetSurpassSelection())
+        if selection is None:
+            return None
+
+        # Check type?
+        if typeFilter is None:
+            return selection
+        
+        if not self.isOfType(selection, typeFilter):
+            return None
+
+    
     def getVoxelSizes(self):
         """Returns the X, Y, and Z voxel sizes of the dataset."""
 
@@ -358,7 +573,65 @@ object and resets the mImarisApplication property
             self._mImarisApplication = None
             return False
 
-                    
+    def _isOfType(self, object, typeValue):
+        """Checks that a passed object is of a given type.
+        
+        Arguments:
+        
+        object:
+        
+        typeValue: one of:
+                            'Cells'
+                           'ClippingPlane'
+                           'Dataset'
+                           'Filaments'
+                           'Frame'
+                           'LightSource'
+                           'MeasurementPoints'
+                           'Spots'
+                           'Surfaces'
+                           'SurpassCamera'
+                           'Volume'
+        """
+        
+        # Possible type values
+        possibleTypeValues = ["Cells", "ClippingPlane", "Dataset", "Frame", \
+                              "LightSource", "MeasurementPoints", "Spots", \
+                              "Surfaces", "SurpassCamera", "Volume"]
+        
+        if not typeValue in possibleTypeValues:
+            raise ValueError("Invalid value for typeValue.")        
+        
+        # Get the factory
+        factory = self.mImarisApplication.GetFactory()
+        
+        # Test the object
+        if typeValue == 'Cells':
+            return factory.IsCells(object)
+        elif typeValue == 'ClippingPlane':
+            return factory.IsClippingPlane(object)
+        elif typeValue == 'Dataset':
+            return factory.IsDataset(object)
+        elif typeValue == 'Filaments':
+            return factory.IsFilaments(object)
+        elif typeValue == 'Frame':
+            return factory.IsFrame(object)
+        elif typeValue == 'LightSource':
+            return factory.IsLightSource(object)
+        elif typeValue == 'MeasurementPoints':
+            return factory.IsMeasurementPoints(object)
+        elif typeValue == 'Spots':
+            return factory.IsSpots(object)
+        elif typeValue == 'Surfaces':
+            return factory.IsSurfaces(object)
+        elif typeValue == 'SurpassCamera':
+            return factory.IsSurpassCamera(object)
+        elif typeValue == 'Volume':
+            return factory.IsVolume(object);
+        else:
+            raise ValueError('Bad value for ''typeValue''.');
+
+                
     def startImaris(self, userControl=False):
         """Starts an Imaris instance and stores the ImarisApplication ICE object.
         
@@ -599,6 +872,46 @@ object and resets the mImarisApplication property
         return newestVersionDir
 
 
+    def _getChildrenAtLevel(self, container, recursive, children):
+        """Recursive function to scan the children of a given container."""
+        
+        for i in range(container.GetNumberOfChildren()):
+            
+            # Get current child
+            child = container.GetChild(i)
+
+            # Is this a folder? If it is, call this function recursively
+            if self.mImarisApplication.GetFactory().IsDataContainer(child):
+                if recursive == True:
+                    children = self._getChildrenAtLevel(self.autocast(child), 
+                                                        recursive)
+            else:
+                children.append(self.autocast(child))
+            
+        return children
+ 
+ 
+    def _getFilteredChildrenAtLevel(self, container, recursive, \
+                                    typeFilter, children):
+        """Recursive function to scan the children of a given container."""
+        
+        for i in range(container.GetNumberOfChildren()):
+            
+            child = container.GetChild(i)
+            
+            # Is this a folder? If it is, call this function recursively
+            if self.mImarisApplication.GetFactory().IsDataContainer(child):
+                if recursive == True:
+                    children = self._getFilteredChildrenAtLevel(
+                        self.autocast(child), recursive, typeFilter)
+            else:
+                currentChild = self.autocast(child);
+                if self._isOfType(currentChild, typeFilter):
+                    children.append(currentChild)
+            
+        return children
+
+        
     def _importImarisLib(self):
         """Import the ImarisLib module."""
         
@@ -644,7 +957,7 @@ object and resets the mImarisApplication property
     
     def _isSupportedPlatform(self):
         """Returns True if running on a supported platform."""
-        return self._ispc() or self._ismac()
+        return (self._ispc() or self._ismac())
 
 
     def _startImarisServer(self):
