@@ -34,6 +34,7 @@ import random
 import imp
 import subprocess
 import time
+import numpy as np
 
 class pIceImarisConnector(object):
     """pIceImarisConnector is a simple Python class eases communication 
@@ -410,21 +411,25 @@ by type.
         # Get the dataset class
         imarisDataType = str(iDataSet.GetType())
         if imarisDataType == "eTypeUInt8":
-            stack = iDataSet.GetDataVolumeAs1DArrayBytes(channel, timepoint)
+            #arr = iDataSet.GetDataVolumeAs1DArrayBytes(channel, timepoint)
+            arr = iDataSet.GetDataVolumeBytes(channel, timepoint)
         elif imarisDataType == "eTypeUInt16":
-            stack = iDataSet.GetDataVolumeAs1DArrayShorts(channel, timepoint)
+            #arr = iDataSet.GetDataVolumeAs1DArrayShorts(channel, timepoint)
+            arr = iDataSet.GetDataVolumeShorts(channel, timepoint)
         elif imarisDataType == "eTypeFloat":
-            stack = iDataSet.GetDataVolumeAs1DArrayFloats(channel, timepoint)
+            #arr = iDataSet.GetDataVolumeAs1DArrayFloats(channel, timepoint)
+            arr = iDataSet.GetDataVolumeFloats(channel, timepoint)
         else:
             raise Exception("Bad value for iDataSet::getType().")
         
-        # Allocate memory
-        # TODO
+        # Wrap the array in a Numpy array
+        stack = np.array(arr)
+        #(sX, sY, sZ) = self.getSizes()
+        #stack.reshape(sZ, sY, sX)
         
-        # Get the stack
-        
-        
+        # Return
         return stack
+
  
     def getExtends(self):
         """Returns the dataset extends."""
@@ -526,8 +531,10 @@ does not match.
         if typeFilter is None:
             return selection
         
-        if not self.isOfType(selection, typeFilter):
+        if not self._isOfType(selection, typeFilter):
             return None
+        
+        return selection
 
     
     def getVoxelSizes(self):
