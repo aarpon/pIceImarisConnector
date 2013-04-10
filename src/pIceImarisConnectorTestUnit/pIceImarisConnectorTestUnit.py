@@ -10,6 +10,8 @@ Licence    GPL v2
 '''
 
 import os
+import numpy as np;
+
 from pIceImarisConnector import pIceImarisConnector
 
 if __name__ == '__main__':
@@ -134,38 +136,26 @@ if __name__ == '__main__':
     spot = child[ 0 ]
     assert(callable(getattr(spot, 'GetPositionsXYZ')) == True)
     
-    # # Get the coordinates
-    # pos = spot.GetPositionsXYZ
-    # 
-    # # These are the expected spot coordinates
-    # print('Check spot coordinates and conversions units<->pixels...')
-    # POS = [
-    #     18.5396    1.4178    8.7341
-    #     39.6139   14.8819    9.0352
-    #     35.1155    9.4574    9.0352
-    #     12.3907   21.6221   11.7459 
-    #    ]
-    # 
-    # assert(all(all(abs(pos - POS) < 1e-4)) == 1)
-    # 
-    # # Convert
-    # posV = conn.mapPositionsUnitsToVoxels(pos)
-    # posU = conn.mapPositionsVoxelsToUnits(posV)
-    # 
-    # # Check the conversion
-    # assert(all(all(abs(posU - POS) < 1e-4)) == 1)
-    # 
-    # # Try also the different synopses
-    # [posVx, posVy, posVz] = ...
-    #     conn.mapPositionsUnitsToVoxels(pos(:, 1), pos(:, 2), pos(:, 3))
-    # [posUx, posUy, posUz] = ...
-    #     conn.mapPositionsVoxelsToUnits(posVx, posVy, posVz)
-    # 
-    # # Check the conversion
-    # assert(all(all(abs(posUx - POS(:, 1)) < 1e-4)) == 1)
-    # assert(all(all(abs(posUy - POS(:, 2)) < 1e-4)) == 1)
-    # assert(all(all(abs(posUz - POS(:, 3)) < 1e-4)) == 1)
-    # 
+    # Get the coordinates
+    pos = spot.GetPositionsXYZ()
+    
+    # These are the expected spot coordinates
+    print('Check spot coordinates and conversions units<->pixels...')
+    POS = [
+           [18.5396,    1.4178,    8.7341],
+           [39.6139,   14.8819,    9.0352],
+           [35.1155,    9.4574,    9.0352],
+           [12.3907,   21.6221,   11.7459]]
+
+    assert(np.all(abs(np.array(pos) - np.array(POS)) < 1e-4))
+
+    # Convert
+    posV = conn.mapPositionsUnitsToVoxels(pos)
+    posU = conn.mapPositionsVoxelsToUnits(posV)
+ 
+    # Check the conversion
+    assert(np.all(abs(np.array(posU) - np.array(POS)) < 1e-4))
+    
     # # Test filtering the selection
     # # =========================================================================
     # print('Test filtering the surpass selection by type...')

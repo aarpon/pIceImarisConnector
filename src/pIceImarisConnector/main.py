@@ -411,24 +411,24 @@ by type.
         # Get the dataset class
         imarisDataType = str(iDataSet.GetType())
         if imarisDataType == "eTypeUInt8":
-            #arr = iDataSet.GetDataVolumeAs1DArrayBytes(channel, timepoint)
-            arr = iDataSet.GetDataVolumeBytes(channel, timepoint)
+            arr = iDataSet.GetDataVolumeAs1DArrayBytes(channel, timepoint)
+            #arr = iDataSet.GetDataVolumeBytes(channel, timepoint)
         elif imarisDataType == "eTypeUInt16":
-            #arr = iDataSet.GetDataVolumeAs1DArrayShorts(channel, timepoint)
-            arr = iDataSet.GetDataVolumeShorts(channel, timepoint)
+            arr = iDataSet.GetDataVolumeAs1DArrayShorts(channel, timepoint)
+            #arr = iDataSet.GetDataVolumeShorts(channel, timepoint)
         elif imarisDataType == "eTypeFloat":
-            #arr = iDataSet.GetDataVolumeAs1DArrayFloats(channel, timepoint)
-            arr = iDataSet.GetDataVolumeFloats(channel, timepoint)
+            arr = iDataSet.GetDataVolumeAs1DArrayFloats(channel, timepoint)
+            #arr = iDataSet.GetDataVolumeFloats(channel, timepoint)
         else:
             raise Exception("Bad value for iDataSet::getType().")
         
         # Wrap the array in a Numpy array
-        stack = np.array(arr)
+        #stack = np.array(arr)
         #(sX, sY, sZ) = self.getSizes()
         #stack.reshape(sZ, sY, sX)
         
         # Return
-        return stack
+        return arr
 
  
     def getExtends(self):
@@ -580,65 +580,189 @@ does not match.
             self._mImarisApplication = None
             return False
 
-    def _isOfType(self, object, typeValue):
-        """Checks that a passed object is of a given type.
-        
-        Arguments:
-        
-        object:
-        
-        typeValue: one of:
-                            'Cells'
-                           'ClippingPlane'
-                           'Dataset'
-                           'Filaments'
-                           'Frame'
-                           'LightSource'
-                           'MeasurementPoints'
-                           'Spots'
-                           'Surfaces'
-                           'SurpassCamera'
-                           'Volume'
-        """
-        
-        # Possible type values
-        possibleTypeValues = ["Cells", "ClippingPlane", "Dataset", "Frame", \
-                              "LightSource", "MeasurementPoints", "Spots", \
-                              "Surfaces", "SurpassCamera", "Volume"]
-        
-        if not typeValue in possibleTypeValues:
-            raise ValueError("Invalid value for typeValue.")        
-        
-        # Get the factory
-        factory = self.mImarisApplication.GetFactory()
-        
-        # Test the object
-        if typeValue == 'Cells':
-            return factory.IsCells(object)
-        elif typeValue == 'ClippingPlane':
-            return factory.IsClippingPlane(object)
-        elif typeValue == 'Dataset':
-            return factory.IsDataset(object)
-        elif typeValue == 'Filaments':
-            return factory.IsFilaments(object)
-        elif typeValue == 'Frame':
-            return factory.IsFrame(object)
-        elif typeValue == 'LightSource':
-            return factory.IsLightSource(object)
-        elif typeValue == 'MeasurementPoints':
-            return factory.IsMeasurementPoints(object)
-        elif typeValue == 'Spots':
-            return factory.IsSpots(object)
-        elif typeValue == 'Surfaces':
-            return factory.IsSurfaces(object)
-        elif typeValue == 'SurpassCamera':
-            return factory.IsSurpassCamera(object)
-        elif typeValue == 'Volume':
-            return factory.IsVolume(object);
-        else:
-            raise ValueError('Bad value for ''typeValue''.');
 
-                
+    def mapPositionsUnitsToVoxels(self, *args):
+        """Maps voxel coordinates in dataset units to voxel indices.
+        
+SYNOPSIS
+
+   (1) pos = conn.mapPositionsUnitsToVoxels(uPos)
+ 
+   (2) pos = ...
+          conn.mapPositionsUnitsToVoxels(uPosX, uPosY, uPosZ)
+ 
+   (3) [posX, posY, posZ] = ...
+                         conn.mapPositionsUnitsToVoxels(uPos)
+ 
+   (4) [posX, posY, posZ] = ...
+          conn.mapPositionsUnitsToVoxels(uPosX, uPosY, uPosZ)
+ 
+INPUT
+
+   [1] and [3]:
+ 
+   uPos  : (N x 3) matrix containing the X, Y, Z coordinates in dataset
+           units
+ 
+   [2] and [4]:
+ 
+   uPosX : (M x 1) vector containing the X coordinates in dataset units
+   uPosY : (N x 1) vector containing the Y coordinates in dataset units
+   uPosZ : (O x 1) vector containing the Z coordinates in dataset units
+
+   M, N, a O will most likely be the same (and must be the same for 
+   synopsis 2).
+ 
+OUTPUT
+ 
+   [1] and [2]:
+ 
+   pos   : (N x 3) matrix containing the X, Y, Z voxel indices
+ 
+   [3] and [4]:
+ 
+   posX  : (M x 1) vector containing the X voxel indices
+   posY  : (N x 1) vector containing the Y voxel indices
+   posZ  : (O x 1) vector containing the Z voxel indices
+ 
+   M, N, a O will most likely be the same.
+"""
+
+        if not self.isAlive():
+            return None
+
+        # Error message
+        errMsg = "Expected an (n x 3) array or Numpy array."
+        
+        # Check the number, type and dimensions of arguments
+        nArg = len(args)
+        if nArg != 1:
+            raise ValueError(errMsg)
+
+        # Get the input
+        uPos = args[0]
+
+        if not isinstance(uPos, list) and \
+            not isinstance(uPos, np.ndarray):
+            raise TypeError(errMsg)
+        
+        # If list, convert to Nupy array
+        if isinstance(uPos, list):
+            uPos = np.array(uPos)
+        
+        # Check dimensions
+        if uPos.ndim != 2 or uPos.shape[1] != 3:
+            raise ValueError(errMsg)
+
+        # Get the voxel sizes
+        voxelSizes = np.array(self.getVoxelSizes())
+        
+        # Get the extends
+        extends = np.array([
+            self.mImarisApplication.GetDataSet().GetExtendMinX(),
+            self.mImarisApplication.GetDataSet().GetExtendMinY(),
+            self.mImarisApplication.GetDataSet().GetExtendMinZ()])
+
+        # Map units to voxels
+        p = (uPos - extends) / voxelSizes + 0.5 
+        
+        # Return the mapped coordinates in an array
+        return p.tolist()
+
+
+    def mapPositionsVoxelsToUnits(self, *args):
+        """Maps voxel indices in dataset units to unit coordinates.
+ 
+SYNOPSIS
+ 
+   (1) pos = conn.mapPositionsVoxelsToUnits(vPos)
+ 
+   (2) pos = ...
+          conn.mapPositionsVoxelsToUnits(vPosX, vPosY, vPosZ)
+ 
+   (3) [posX, posY, posZ] = ...
+                         conn.mapPositionsVoxelsToUnits(vPos)
+ 
+   (4) [posX, posY, posZ] = ...
+          conn.mapPositionsVoxelsToUnits(vPosX, vPosY, vPosZ)
+ 
+INPUT
+ 
+   [1] and [3]:
+ 
+   vPos  : (N x 3) matrix containing the X, Y, Z unit coordinates
+            mapped onto a voxel grid
+ 
+   [2] and [4]:
+ 
+   vPosX : (M x 1) vector containing the X coordinates mapped onto a
+           voxel grid
+   vPosY : (N x 1) vector containing the Y coordinates mapped onto a
+           voxel grid
+   vPosZ : (O x 1) vector containing the Z coordinates mapped onto a
+           voxel grid
+ 
+   M, N, a O will most likely be the same (and must be the same for 
+   synopsis 2).
+ 
+OUTPUT
+ 
+   [1] and [2]:
+ 
+   pos   : (N x 3) matrix containing the X, Y, Z coordinates in
+           dataset units
+ 
+   [3] and [4]:
+ 
+   posX  : (M x 1) vector containing the X coordinates in dataset units
+   posY  : (N x 1) vector containing the Y coordinates in dataset units
+   posZ  : (O x 1) vector containing the Z coordinates in dataset units
+ 
+   M, N, a O will most likely be the same.
+
+"""
+        # Is Imaris running?
+        if not self.isAlive():
+            return
+
+        # Error message
+        errMsg = "Expected an (n x 3) array or Numpy array."
+        
+        # Check the number, type and dimensions of arguments
+        nArg = len(args)
+        if nArg != 1:
+            raise ValueError(errMsg)
+
+        # Get the input
+        vPos = args[0]
+
+        if not isinstance(vPos, list) and \
+            not isinstance(vPos, np.ndarray) :
+            raise TypeError(errMsg)
+        
+        # If list, convert to Nupy array
+        if isinstance(vPos, list):
+            vPos = np.array(vPos)
+        
+        # Check dimensions
+        if vPos.ndim != 2 or vPos.shape[1] != 3:
+            raise ValueError(errMsg)
+
+        # Get the voxel sizes
+        voxelSizes = np.array(self.getVoxelSizes())
+        
+        # Get the extends
+        extends = np.array([
+            self.mImarisApplication.GetDataSet().GetExtendMinX(),
+            self.mImarisApplication.GetDataSet().GetExtendMinY(),
+            self.mImarisApplication.GetDataSet().GetExtendMinZ()])
+
+        # Map units to voxels
+        p = (vPos - 0.5) * voxelSizes + extends 
+        
+        # Return the mapped coordinates in an array
+        return p.tolist()
+    
     def startImaris(self, userControl=False):
         """Starts an Imaris instance and stores the ImarisApplication ICE object.
         
@@ -726,7 +850,7 @@ does not match.
         except:
             print("Error: " + str(sys.exc_info()[1]))
 
-
+     
     # --------------------------------------------------------------------------
     #
     # PRIVATE METHODS
@@ -954,6 +1078,65 @@ does not match.
         """Return true if pIceImarisConnector is being run on Mac OS X."""
         
         return platform.system() == "Darwin"
+
+
+    def _isOfType(self, obj, typeValue):
+        """Checks that a passed object is of a given type.
+        
+        Arguments:
+        
+        obj: object for which the type is to be checked
+        
+        typeValue: one of:
+                           'Cells'
+                           'ClippingPlane'
+                           'Dataset'
+                           'Filaments'
+                           'Frame'
+                           'LightSource'
+                           'MeasurementPoints'
+                           'Spots'
+                           'Surfaces'
+                           'SurpassCamera'
+                           'Volume'
+        """
+        
+        # Possible type values
+        possibleTypeValues = ["Cells", "ClippingPlane", "Dataset", "Frame", \
+                              "LightSource", "MeasurementPoints", "Spots", \
+                              "Surfaces", "SurpassCamera", "Volume"]
+        
+        if not typeValue in possibleTypeValues:
+            raise ValueError("Invalid value for typeValue.")        
+        
+        # Get the factory
+        factory = self.mImarisApplication.GetFactory()
+        
+        # Test the object
+        if typeValue == 'Cells':
+            return factory.IsCells(obj)
+        elif typeValue == 'ClippingPlane':
+            return factory.IsClippingPlane(obj)
+        elif typeValue == 'Dataset':
+            return factory.IsDataset(obj)
+        elif typeValue == 'Filaments':
+            return factory.IsFilaments(obj)
+        elif typeValue == 'Frame':
+            return factory.IsFrame(obj)
+        elif typeValue == 'LightSource':
+            return factory.IsLightSource(obj)
+        elif typeValue == 'MeasurementPoints':
+            return factory.IsMeasurementPoints(obj)
+        elif typeValue == 'Spots':
+            return factory.IsSpots(obj)
+        elif typeValue == 'Surfaces':
+            return factory.IsSurfaces(obj)
+        elif typeValue == 'SurpassCamera':
+            return factory.IsSurpassCamera(obj)
+        elif typeValue == 'Volume':
+            return factory.IsVolume(obj);
+        else:
+            raise ValueError('Bad value for ''typeValue''.');
 
 
     def _ispc(self):
