@@ -156,25 +156,25 @@ if __name__ == '__main__':
     # Check the conversion
     assert(np.all(abs(np.array(posU) - np.array(POS)) < 1e-4))
     
-    # # Test filtering the selection
-    # # =========================================================================
-    # print('Test filtering the surpass selection by type...')
-    # 
-    # # "Select" the spots object
-    # conn.mImarisApplication.SetSurpassSelection(children{4})
-    # 
-    # # Now get it back, first with the right filter, then with the wrong one
-    # assert(isa(conn.getSurpassSelection('Spots'), class(children{4})))
-    # assert(isempty(conn.getSurpassSelection('Surfaces')))
-    # 
-    # # Test creating and adding new spots
-    # # =========================================================================
-    # print('Test creation of new spots...')
-    # vSpotsData = spot.Get
-    # coords = vSpotsData.mPositionsXYZ + 1.00
-    # timeIndices = vSpotsData.mIndicesT
-    # radii = vSpotsData.mRadii
-    # conn.createAndSetSpots(coords, timeIndices, radii, 'Test', rand(1, 4))
+    # Test filtering the selection
+    # =========================================================================
+    print('Test filtering the surpass selection by type...')
+ 
+    # "Select" the spots object
+    conn.mImarisApplication.SetSurpassSelection(children[3])
+
+    # Now get it back, first with the right filter, then with the wrong one
+    assert(isinstance(conn.getSurpassSelection('Spots'), type(children[3])))
+    assert(conn.getSurpassSelection('Surfaces') is None)
+
+    # Test creating and adding new spots
+    # =========================================================================
+    print('Test creation of new spots...')
+    vSpotsData = spot.Get()
+    coords = (np.array(vSpotsData.mPositionsXYZ) + 1.00).tolist()
+    timeIndices = vSpotsData.mIndicesT
+    radii = vSpotsData.mRadii
+    #conn.createAndSetSpots(coords, timeIndices, radii, 'Test',  np.random.uniform(0, 1, 4))
     # spots = conn.getAllSurpassChildren(0, 'Spots')
     # assert(numel(spots) == 2)
     # 
