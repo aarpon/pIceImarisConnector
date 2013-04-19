@@ -5,6 +5,8 @@ Purpose   pIceImarisConnector is a simple Python class eases communication
 
 Author    Aaron Ponti
 
+License
+
 ImarisConnector is a simple commodity class that eases communication between
 Imaris and MATLAB using the Imaris XT interface.
 Copyright (C) 2013  Aaron Ponti
@@ -70,9 +72,11 @@ class pIceImarisConnector(object):
     def version(self):
         return self._mVersion
 
+
     @property
     def mImarisApplication(self):
         return self._mImarisApplication
+
 
     @property
     def indexingStart(self):
@@ -92,48 +96,57 @@ class pIceImarisConnector(object):
 
 
     def __init__(self, imarisApplication=None, indexingStart=0):
-        """"Initialize the created pIceImarisConnector object.
+        """"Initializes the created pIceImarisConnector object.
 
-        Arguments:
+Arguments:
 
-        imarisApplication : (optional) if omitted (or set to None), a
-                            pIceImarisConnector object is created that
-                            is not connected to any Imaris instance.
+imarisApplication : (optional) if omitted (or set to None), a
+                    pIceImarisConnector object is created that
+                    is not connected to any Imaris instance.
 
-                            Imaris can then be started (and connected)
-                            using the startImaris() method, i.e.
+                    Imaris can then be started (and connected)
+                    using the startImaris() method, i.e.
 
-                                conn.startImaris()
+                    conn.startImaris()
 
-                            Alternatively, imarisApplication can be:
+                    Alternatively, imarisApplication can be:
 
-                            - an Imaris Application ID as provided by Imaris
-                            - a pIceImarisConnector reference
-                            - an Imaris Application ICE object.
+                    - an Imaris Application ID as provided by Imaris
+                    - a pIceImarisConnector reference
+                    - an Imaris Application ICE object.
 
-        indexingStart     : (optional, default is 0) either 0 or 1,
-                            depending on whether you prefer to index
-                            arrays in pIceImarisConnector starting at
-                            0 or 1.
+indexingStart     : (optional, default is 0) either 0 or 1,
+                    depending on whether you prefer to index
+                    arrays in pIceImarisConnector starting at
+                    0 or 1.
 
-                            All indexing in ICE starts at 0; in contrast,
-                            MATLAB indexing starts at 1. To keep
-                            consistency, indexing in pIceImarisConnector
-                            is also 0-based (i.e. indexingStart defaults
-                            to 0). This means that to get the data volume
-                            for the first channel and first time point of
-                            the dataset you will use:
+                    In the MATLAB version of IceImarisConnector,
+                    indexingStart can optionally be set to 1 to
+                    map the 1-based indexing of MATLAB to the 0-
+                    based indexing used by ImarisLib and ICE,
+                    though by default it is set to 0 to maintain
+                    consistency across MATLAB and ICE.
 
-                                conn.GetDataVolume(0, 0)
+                    Since pIceImarisConnector strives to offer
+                    the same API as its MATLAB counterpart, 
+                    indexingStart can be set here as well, though
+                    in practice it might not make much sense to
+                    change the default value of 0.
 
-                            It you are come confortable with 1-based
-                            indexing, i.e. you prefer using:
+                    By default, then, to get the data volume
+                    for the first channel and first time point of
+                    the dataset you will use:
 
-                                conn.GetDataVolume(1, 1)
+                        conn.GetDataVolume(0, 0)
 
-                            you can set indexingStart to 1.
+                    It you are come confortable with 1-based
+                    indexing, i.e. you prefer using:
 
-                            Whatever you choose, be consistent!
+                        conn.GetDataVolume(1, 1)
+
+                    you can set indexingStart to 1.
+
+                    Whatever you choose, be consistent!
 
         """
 
@@ -221,25 +234,25 @@ class pIceImarisConnector(object):
     def autocast(self, dataItem):
         """Casts IDataItems to their derived types.
 
-        Arguments:
+Arguments:
 
-        dataItem: an Imaris::IDataItem object
+dataItem: an Imaris::IDataItem object
 
-        returns one of the Imaris::IDataItem subclasses:
-                                 - Imaris::IClippingPlane
-                                 - Imaris::IDataContainer
-                                 - Imaris::IFilaments
-                                 - Imaris::IFrame
-                                 - Imaris::IDataSet
-                                 - Imaris::IICells
-                                 - Imaris::ILightSource
-                                 - Imaris::IMeasurementPoints
-                                 - Imaris::ISpots
-                                 - Imaris::ISurfaces
-                                 - Imaris::IVolume
-                                 - Imaris::ISurpassCamera
-                                 - Imaris::IImageProcessing
-                                 - Imaris::IFactory
+returns one of the Imaris::IDataItem subclasses:
+                    - Imaris::IClippingPlane
+                    - Imaris::IDataContainer
+                    - Imaris::IFilaments
+                    - Imaris::IFrame
+                    - Imaris::IDataSet
+                    - Imaris::IICells
+                    - Imaris::ILightSource
+                    - Imaris::IMeasurementPoints
+                    - Imaris::ISpots
+                    - Imaris::ISurfaces
+                    - Imaris::IVolume
+                    - Imaris::ISurpassCamera
+                    - Imaris::IImageProcessing
+                    - Imaris::IFactory
         """
 
         # Get the factory
@@ -280,13 +293,13 @@ class pIceImarisConnector(object):
 
 
     def closeImaris(self, quiet=False):
-        """close the Imaris instance associated to the pIceImarisConnector
-object and resets the mImarisApplication property
+        """Closes the Imaris instance associated to the pIceImarisConnector
+object and resets the mImarisApplication property.
 
-        Arguments:
+Arguments:
 
-        quiet : (optional, default False) If True, Imaris won't pop-up a save
-                dialog and close silently.
+quiet : (optional, default False) If True, Imaris won't pop-up a save
+        dialog and close silently.
 
         """
 
@@ -309,9 +322,10 @@ object and resets the mImarisApplication property
 
 
     def display(self):
-        """Display the string representation of the pIceImarisConnector object."""
+        """Displays the string representation of the pIceImarisConnector object."""
 
         print(self.__str__())
+
 
     def getAllSurpassChildren(self, recursive, typeFilter=None):
         """Returns all children of the surpass scene recursively.
@@ -319,26 +333,26 @@ Folders (i.e. IDataContainer objects) may be scanned (recursively)
 but are not returned. Optionally, the returned objects may be filtered
 by type.
 
-        Arguments:
+Arguments:
 
-        recursive:  {True | False} If True, folders will be scanned recursively;
-                    if False, only objects at root level will be inspected.
+recursive:  {True | False} If True, folders will be scanned recursively;
+            if False, only objects at root level will be inspected.
 
-        typeFilter: {True | False} (optional, default False) Filters the
-                    children by type. Only the surpass children of the
-                    specified type are returned; typeFilter is one of:
+typeFilter: {True | False} (optional, default False) Filters the
+            children by type. Only the surpass children of the
+            specified type are returned; typeFilter is one of:
 
-                           'Cells'
-                           'ClippingPlane'
-                           'Dataset'
-                           'Filaments'
-                           'Frame'
-                           'LightSource'
-                           'MeasurementPoints'
-                           'Spots'
-                           'Surfaces'
-                           'SurpassCamera'
-                           'Volume'
+                'Cells'
+                'ClippingPlane'
+                'Dataset'
+                'Filaments'
+                'Frame'
+                'LightSource'
+                'MeasurementPoints'
+                'Spots'
+                'Surfaces'
+                'SurpassCamera'
+                'Volume'
 
         """
 
@@ -441,7 +455,7 @@ by type.
 
 
     def getImarisVersionAsInteger(self):
-        """Returns the Imaris version as an integer"""
+        """Returns the Imaris version as an integer."""
 
         # Is Imaris running?
         if not self.isAlive():
@@ -495,24 +509,24 @@ the 'typeFilter' parameter is specified, the object class is checked
 against it and None is returned instead of the object if the type
 does not match.
 
-        Arguments:
+Arguments:
 
-        typeFilter: {True | False} (optional, default False) Specifies
-                    the expected object class. If the selected object
-                    is not of the specified type, the function will
-                    return None instead. Type is one of:
+typeFilter: {True | False} (optional, default False) Specifies
+            the expected object class. If the selected object
+            is not of the specified type, the function will
+            return None instead. Type is one of:
 
-                           'Cells'
-                           'ClippingPlane'
-                           'Dataset'
-                           'Filaments'
-                           'Frame'
-                           'LightSource'
-                           'MeasurementPoints'
-                           'Spots'
-                           'Surfaces'
-                           'SurpassCamera'
-                           'Volume'
+                'Cells'
+                'ClippingPlane'
+                'Dataset'
+                'Filaments'
+                'Frame'
+                'LightSource'
+                'MeasurementPoints'
+                'Spots'
+                'Surfaces'
+                'SurpassCamera'
+                'Volume'
 
         """
 
@@ -557,7 +571,8 @@ does not match.
 
 
     def info(self):
-        """Print pIceImarisConnector information."""
+        """Prints pIceImarisConnector information."""
+
         print("pIceImarisConnector version " + self.version + " using:")
         print("- Imaris path: " + self._mImarisPath)
         print("- Imaris executable: " + self._mImarisExePath)
@@ -584,47 +599,18 @@ does not match.
 
 SYNOPSIS
 
-   (1) pos = conn.mapPositionsUnitsToVoxels(uPos)
-
-   (2) pos = ...
-          conn.mapPositionsUnitsToVoxels(uPosX, uPosY, uPosZ)
-
-   (3) [posX, posY, posZ] = ...
-                         conn.mapPositionsUnitsToVoxels(uPos)
-
-   (4) [posX, posY, posZ] = ...
-          conn.mapPositionsUnitsToVoxels(uPosX, uPosY, uPosZ)
+pos = conn.mapPositionsUnitsToVoxels(uPos)
 
 INPUT
-
-   [1] and [3]:
 
    uPos  : (N x 3) matrix containing the X, Y, Z coordinates in dataset
            units
 
-   [2] and [4]:
-
-   uPosX : (M x 1) vector containing the X coordinates in dataset units
-   uPosY : (N x 1) vector containing the Y coordinates in dataset units
-   uPosZ : (O x 1) vector containing the Z coordinates in dataset units
-
-   M, N, a O will most likely be the same (and must be the same for
-   synopsis 2).
-
 OUTPUT
-
-   [1] and [2]:
 
    pos   : (N x 3) matrix containing the X, Y, Z voxel indices
 
-   [3] and [4]:
-
-   posX  : (M x 1) vector containing the X voxel indices
-   posY  : (N x 1) vector containing the Y voxel indices
-   posZ  : (O x 1) vector containing the Z voxel indices
-
-   M, N, a O will most likely be the same.
-"""
+        """
 
         if not self.isAlive():
             return None
@@ -673,52 +659,20 @@ OUTPUT
 
 SYNOPSIS
 
-   (1) pos = conn.mapPositionsVoxelsToUnits(vPos)
-
-   (2) pos = ...
-          conn.mapPositionsVoxelsToUnits(vPosX, vPosY, vPosZ)
-
-   (3) [posX, posY, posZ] = ...
-                         conn.mapPositionsVoxelsToUnits(vPos)
-
-   (4) [posX, posY, posZ] = ...
-          conn.mapPositionsVoxelsToUnits(vPosX, vPosY, vPosZ)
+pos = conn.mapPositionsVoxelsToUnits(vPos)
 
 INPUT
-
-   [1] and [3]:
 
    vPos  : (N x 3) matrix containing the X, Y, Z unit coordinates
             mapped onto a voxel grid
 
-   [2] and [4]:
-
-   vPosX : (M x 1) vector containing the X coordinates mapped onto a
-           voxel grid
-   vPosY : (N x 1) vector containing the Y coordinates mapped onto a
-           voxel grid
-   vPosZ : (O x 1) vector containing the Z coordinates mapped onto a
-           voxel grid
-
-   M, N, a O will most likely be the same (and must be the same for
-   synopsis 2).
-
 OUTPUT
-
-   [1] and [2]:
 
    pos   : (N x 3) matrix containing the X, Y, Z coordinates in
            dataset units
 
-   [3] and [4]:
+        """
 
-   posX  : (M x 1) vector containing the X coordinates in dataset units
-   posY  : (N x 1) vector containing the Y coordinates in dataset units
-   posZ  : (O x 1) vector containing the Z coordinates in dataset units
-
-   M, N, a O will most likely be the same.
-
-"""
         # Is Imaris running?
         if not self.isAlive():
             return
@@ -764,14 +718,14 @@ OUTPUT
     def startImaris(self, userControl=False):
         """Starts an Imaris instance and stores the ImarisApplication ICE object.
 
-        Arguments:
+Arguments:
 
-        userControl :   (optional, default False) The optional parameter
-                        userControl sets the fate of Imaris when the client
-                        is closed: if userControl is True, Imaris terminates
-                        when the pIceImarisConnector object (conn) is deleted.
-                        If is it set to False, Imaris stays open after the
-                        client is closed.
+userControl :   (optional, default False) The optional parameter
+                userControl sets the fate of Imaris when the client
+                is closed: if userControl is True, Imaris terminates
+                when the pIceImarisConnector object (conn) is deleted.
+                If is it set to False, Imaris stays open after the
+                client is closed.
 
         """
 
@@ -934,11 +888,11 @@ OUTPUT
         """Scans for candidate Imaris directories and returns the one
         with highest version number. For internal use only!
 
-        Arguments:
+Arguments:
 
-        directory:  directory to be scanned. Most likely
-                    C:\\Program Files\\Bitplane in Windows and
-                    /Applications on Mac OS X.
+directory:  directory to be scanned. Most likely
+            C:\\Program Files\\Bitplane in Windows and
+            /Applications on Mac OS X.
 
         """
 
@@ -1002,7 +956,7 @@ OUTPUT
 
 
     def _getChildrenAtLevel(self, container, recursive, children):
-        """Recursive function to scan the children of a given container."""
+        """Scans the children of a given container recursively."""
 
         for i in range(container.GetNumberOfChildren()):
 
@@ -1022,7 +976,7 @@ OUTPUT
 
     def _getFilteredChildrenAtLevel(self, container, recursive, \
                                     typeFilter, children):
-        """Recursive function to scan the children of a given container."""
+        """Scans the children of a certain type in a given container recursively."""
 
         for i in range(container.GetNumberOfChildren()):
 
@@ -1042,7 +996,7 @@ OUTPUT
 
 
     def _importImarisLib(self):
-        """Import the ImarisLib module."""
+        """Imports the ImarisLib module."""
 
         fileobj, pathname, description = imp.find_module('ImarisLib')
         ImarisLib = imp.load_module('ImarisLib', fileobj, pathname, description)
@@ -1051,8 +1005,10 @@ OUTPUT
 
 
     def _isImarisServerIceRunning(self):
-        # Checks whether an instance of ImarisServerIce is already running and
-        # can be reused
+        """ Checks whether an instance of ImarisServerIce is already running and
+can be reused.
+
+        """
 
         # The check will be different on Windows and on Mac OS X
         if self._ispc:
@@ -1073,7 +1029,7 @@ OUTPUT
 
 
     def _ismac(self):
-        """Return true if pIceImarisConnector is being run on Mac OS X."""
+        """Returns true if pIceImarisConnector is being run on Mac OS X."""
 
         return platform.system() == "Darwin"
 
@@ -1081,24 +1037,24 @@ OUTPUT
     def _isOfType(self, obj, typeValue):
         """Checks that a passed object is of a given type.
 
-        Arguments:
+Arguments:
 
-        obj: object for which the type is to be checked
+obj: object for which the type is to be checked
 
-        typeValue: one of:
-                           'Cells'
-                           'ClippingPlane'
-                           'Dataset'
-                           'Filaments'
-                           'Frame'
-                           'LightSource'
-                           'MeasurementPoints'
-                           'Spots'
-                           'Surfaces'
-                           'SurpassCamera'
-                           'Volume'
+typeValue:  one of:
+            'Cells'
+            'ClippingPlane'
+            'Dataset'
+            'Filaments'
+            'Frame'
+            'LightSource'
+            'MeasurementPoints'
+            'Spots'
+            'Surfaces'
+            'SurpassCamera'
+            'Volume'
+        
         """
-
         # Possible type values
         possibleTypeValues = ["Cells", "ClippingPlane", "Dataset", "Frame", \
                               "LightSource", "MeasurementPoints", "Spots", \
@@ -1138,7 +1094,7 @@ OUTPUT
 
 
     def _ispc(self):
-        """Return true if pIceImarisConnector is being run on Windows."""
+        """Returns true if pIceImarisConnector is being run on Windows."""
 
         return platform.system() == "Windows"
 
@@ -1150,7 +1106,7 @@ OUTPUT
 
     def _startImarisServer(self):
         """Starts an instance of ImarisServerIce and waits until it is ready
-        to accept connections."""
+to accept connections."""
 
         # Imaris only runs on Windows and Mac OS X
         if not self._isSupportedPlatform():
