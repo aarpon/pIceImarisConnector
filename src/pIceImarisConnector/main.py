@@ -85,8 +85,7 @@ class pIceImarisConnector(object):
 
     def __new__(cls, *args, **kwargs):
         """Create or re-use a pIceImarisConnector object."""
-        if args and \
-                args[0] is not None and \
+        if args and args[0] is not None and \
                 type(args[0]).__name__ == "pIceImarisConnector":
             # Reusing passed object
             return args[0]
@@ -184,9 +183,10 @@ indexingStart     : (optional, default is 0) either 0 or 1,
         self._mIndexingStart = indexingStart
 
         # Now we check the (optional) input parameter imarisApplication.
-        # We have three cases. If imarisApplication is omitted, we just
-        # create a pIceImarisConnector object that does nothing.
-        # Alternatively, imarisApplication could be:
+        # We have four cases: 
+        # - if imarisApplication is omitted, we just create a 
+        #   pIceImarisConnector object that does nothing. Alternatively, 
+        #   imarisApplication could be:
         # - an Imaris Application ID as provided by Imaris: we query
         #   the Imaris Server for the application and assign it to the
         #   mImarisApplication property
@@ -258,6 +258,7 @@ returns one of the Imaris::IDataItem subclasses:
         # Get the factory
         factory = self.mImarisApplication.GetFactory()
 
+        # Cast
         if factory.IsLightSource(dataItem):
             return factory.ToLightSource(dataItem);
         elif factory.IsFrame(dataItem):
@@ -303,9 +304,11 @@ quiet : (optional, default False) If True, Imaris won't pop-up a save
 
         """
 
+        # Check if the connection is still alive
         if not self.isAlive():
             return True
 
+        # Close Imaris
         try:
 
             if quiet:
@@ -375,6 +378,7 @@ typeFilter: {True | False} (optional, default False) Filters the
         if surpassScene is None:
             return []
 
+        # Do we have children at all?
         if surpassScene.GetNumberOfChildren() == 0:
             return []
 
@@ -446,6 +450,7 @@ typeFilter: {True | False} (optional, default False) Filters the
     def getExtends(self):
         """Returns the dataset extends."""
 
+        # Wrap the extends into a tuple
         return (self._mImarisApplication.GetDataSet().GetExtendMinX(),
                 self._mImarisApplication.GetDataSet().GetExtendMaxY(),
                 self._mImarisApplication.GetDataSet().GetExtendMinY(),
@@ -491,12 +496,14 @@ typeFilter: {True | False} (optional, default False) Filters the
         # Compute version as integer
         version = 1e6 * major + 1e4 * minor + 1e2 * patch
 
+        # Cast into an integer and return
         return int(version)
 
 
     def getSizes(self):
         """Returns the dataset sizes."""
 
+        # Wrap the sizes into a tuple
         return (self._mImarisApplication.GetDataSet().GetSizeX(),
                 self._mImarisApplication.GetDataSet().GetSizeY(),
                 self._mImarisApplication.GetDataSet().GetSizeZ(),
@@ -543,9 +550,11 @@ typeFilter: {True | False} (optional, default False) Specifies
         if typeFilter is None:
             return selection
 
+        # If the object is not of the specified type, return None
         if not self._isOfType(selection, typeFilter):
             return None
 
+        # Return the object
         return selection
 
 
@@ -567,12 +576,14 @@ typeFilter: {True | False} (optional, default False) Specifies
               self._mImarisApplication.GetDataSet().GetExtendMinZ()) / \
               self._mImarisApplication.GetDataSet().GetSizeZ();
 
+        # Wrap the voxel sizes into a tuple
         return (vX, vY, vZ)
 
 
     def info(self):
         """Prints pIceImarisConnector information."""
 
+        # Display info to console
         print("pIceImarisConnector version " + self.version + " using:")
         print("- Imaris path: " + self._mImarisPath)
         print("- Imaris executable: " + self._mImarisExePath)
@@ -583,9 +594,11 @@ typeFilter: {True | False} (optional, default False) Specifies
     def isAlive(self):
         """Checks whether the (stored) connection to Imaris is still alive."""
 
+        # Do we have an ImarisApplication object?
         if self._mImarisApplication is None:
             return False
 
+        # If we do, we try accessing it
         try:
             self.mImarisApplication.GetVersion()
             return True
@@ -612,6 +625,7 @@ OUTPUT
 
         """
 
+        # Do we have a connection?
         if not self.isAlive():
             return None
 
@@ -626,11 +640,12 @@ OUTPUT
         # Get the input
         uPos = args[0]
 
+        # Check the input parameter uPos
         if not isinstance(uPos, list) and \
             not isinstance(uPos, np.ndarray):
             raise TypeError(errMsg)
 
-        # If list, convert to Nupy array
+        # If list, convert to Numpy array
         if isinstance(uPos, list):
             uPos = np.array(uPos)
 
@@ -638,10 +653,10 @@ OUTPUT
         if uPos.ndim != 2 or uPos.shape[1] != 3:
             raise ValueError(errMsg)
 
-        # Get the voxel sizes
+        # Get the voxel sizes into a Numpy array
         voxelSizes = np.array(self.getVoxelSizes())
 
-        # Get the extends
+        # Get the extends into a Numpy array
         extends = np.array([
             self.mImarisApplication.GetDataSet().GetExtendMinX(),
             self.mImarisApplication.GetDataSet().GetExtendMinY(),
@@ -688,11 +703,12 @@ OUTPUT
         # Get the input
         vPos = args[0]
 
+        # Check the input parameter vPos
         if not isinstance(vPos, list) and \
             not isinstance(vPos, np.ndarray) :
             raise TypeError(errMsg)
 
-        # If list, convert to Nupy array
+        # If list, convert to Numpy array
         if isinstance(vPos, list):
             vPos = np.array(vPos)
 
@@ -703,7 +719,7 @@ OUTPUT
         # Get the voxel sizes
         voxelSizes = np.array(self.getVoxelSizes())
 
-        # Get the extends
+        # Get the extends into a Numpy array
         extends = np.array([
             self.mImarisApplication.GetDataSet().GetExtendMinX(),
             self.mImarisApplication.GetDataSet().GetExtendMinY(),
@@ -998,6 +1014,7 @@ directory:  directory to be scanned. Most likely
     def _importImarisLib(self):
         """Imports the ImarisLib module."""
 
+        # Dynamically find and import the ImarisLib module
         fileobj, pathname, description = imp.find_module('ImarisLib')
         ImarisLib = imp.load_module('ImarisLib', fileobj, pathname, description)
         fileobj.close()
