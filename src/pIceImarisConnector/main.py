@@ -427,22 +427,22 @@ typeFilter: {True | False} (optional, default False) Filters the
         # Get the dataset class
         imarisDataType = str(iDataSet.GetType())
         if imarisDataType == "eTypeUInt8":
-            arr = iDataSet.GetDataVolumeAs1DArrayBytes(channel, timepoint)
-            #arr = iDataSet.GetDataVolumeBytes(channel, timepoint)
+            #arr = iDataSet.GetDataVolumeAs1DArrayBytes(channel, timepoint)
+            arr = np.array(iDataSet.GetDataVolumeAs1DArrayBytes(channel, timepoint),
+                              dtype=np.uint8)
         elif imarisDataType == "eTypeUInt16":
-            arr = iDataSet.GetDataVolumeAs1DArrayShorts(channel, timepoint)
-            #arr = iDataSet.GetDataVolumeShorts(channel, timepoint)
+            #arr = iDataSet.GetDataVolumeAs1DArrayShorts(channel, timepoint)
+            arr = np.array(iDataSet.GetDataVolumeAs1DArrayShorts(channel, timepoint),
+                              dtype=np.uint16)
         elif imarisDataType == "eTypeFloat":
-            arr = iDataSet.GetDataVolumeAs1DArrayFloats(channel, timepoint)
-            #arr = iDataSet.GetDataVolumeFloats(channel, timepoint)
+            #arr = iDataSet.GetDataVolumeAs1DArrayFloats(channel, timepoint)
+            arr = np.array(iDataSet.GetDataVolumeFloats(channel, timepoint),
+                              dtype=np.float32)            
         else:
             raise Exception("Bad value for iDataSet::getType().")
 
-        # Wrap the array in a Numpy array
-        #stack = np.array(arr)
-        #(sX, sY, sZ) = self.getSizes()
-        #stack.reshape(sZ, sY, sX)
-
+        # TODO: Reshape
+        
         # Return
         return arr
 
