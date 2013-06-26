@@ -45,7 +45,7 @@ class pIceImarisConnector(object):
     """
 
     # pIceImarisConnector version
-    _mVersion = "0.2.0"
+    _mVersion = "0.3.2-alpha"
 
     # Imaris-related paths
     _mImarisPath = ""
@@ -427,8 +427,8 @@ typeFilter: {True | False} (optional, default False) Filters the
         # Get the dataset class
         imarisDataType = str(iDataSet.GetType())
         if imarisDataType == "eTypeUInt8":
-            # Ice returns uint8 as a string: we must cast. This behavior might be
-            # changed in the future.
+            # Ice returns uint8 as a string: we must cast. This behavior might
+            # be changed in the future.
             arr = np.fromstring(iDataSet.GetDataVolumeAs1DArrayBytes(channel, timepoint),
                                 dtype=np.uint8)
         elif imarisDataType == "seTypeUInt16":
