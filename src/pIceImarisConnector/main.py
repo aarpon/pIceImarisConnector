@@ -427,22 +427,25 @@ typeFilter: {True | False} (optional, default False) Filters the
         # Get the dataset class
         imarisDataType = str(iDataSet.GetType())
         if imarisDataType == "eTypeUInt8":
-            #arr = iDataSet.GetDataVolumeAs1DArrayBytes(channel, timepoint)
-            arr = np.array(iDataSet.GetDataVolumeAs1DArrayBytes(channel, timepoint),
-                              dtype=np.uint8)
-        elif imarisDataType == "eTypeUInt16":
-            #arr = iDataSet.GetDataVolumeAs1DArrayShorts(channel, timepoint)
+            # Ice returns uint8 as a string: we must cast. This behavior might be
+            # changed in the future.
+            arr = np.fromstring(iDataSet.GetDataVolumeAs1DArrayBytes(channel, timepoint),
+                                dtype=np.uint8)
+        elif imarisDataType == "seTypeUInt16":
             arr = np.array(iDataSet.GetDataVolumeAs1DArrayShorts(channel, timepoint),
                               dtype=np.uint16)
         elif imarisDataType == "eTypeFloat":
-            #arr = iDataSet.GetDataVolumeAs1DArrayFloats(channel, timepoint)
             arr = np.array(iDataSet.GetDataVolumeFloats(channel, timepoint),
                               dtype=np.float32)            
         else:
             raise Exception("Bad value for iDataSet::getType().")
 
-        # TODO: Reshape
-        
+        # Reshape
+        x = self._mImarisApplication.GetDataSet().GetSizeX()
+        y = self._mImarisApplication.GetDataSet().GetSizeY()
+        z = self._mImarisApplication.GetDataSet().GetSizeZ()
+        np.reshape(arr, (x, y, z))
+
         # Return
         return arr
 
