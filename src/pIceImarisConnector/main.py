@@ -97,7 +97,11 @@ class pIceImarisConnector(object):
     def __init__(self, imarisApplication=None, indexingStart=0):
         """"Initializes the created pIceImarisConnector object.
 
-Arguments:
+SYNOPSIS:
+
+@TODO
+
+ARGUMENTS:
 
 imarisApplication : (optional) if omitted (or set to None), a
                     pIceImarisConnector object is created that
@@ -183,14 +187,15 @@ indexingStart     : (optional, default is 0) either 0 or 1,
         self._mIndexingStart = indexingStart
 
         # Now we check the (optional) input parameter imarisApplication.
-        # We have four cases: 
+        # We have three remaining cases (the first one we took care of
+        # already; it was the case where imarisApplication was a 
+        # reference to an existing pIceImarisConnector object): 
         # - if imarisApplication is omitted, we just create a 
         #   pIceImarisConnector object that does nothing. Alternatively, 
         #   imarisApplication could be:
         # - an Imaris Application ID as provided by Imaris: we query
         #   the Imaris Server for the application and assign it to the
         #   mImarisApplication property
-        # - a pIceImarisConnector reference: we just return it
         # - an Imaris Application ICE object (rare): we simply assign
         #   it to the mImarisApplication property.
 
@@ -234,7 +239,11 @@ indexingStart     : (optional, default is 0) either 0 or 1,
     def autocast(self, dataItem):
         """Casts IDataItems to their derived types.
 
-Arguments:
+SYNOPSIS:
+
+@TODO
+
+ARGUMENTS:
 
 dataItem: an Imaris::IDataItem object
 
@@ -297,7 +306,11 @@ returns one of the Imaris::IDataItem subclasses:
         """Closes the Imaris instance associated to the pIceImarisConnector
 object and resets the mImarisApplication property.
 
-Arguments:
+SYNOPSIS:
+
+@TODO
+
+ARGUMENTS:
 
 quiet : (optional, default False) If True, Imaris won't pop-up a save
         dialog and close silently.
@@ -323,6 +336,17 @@ quiet : (optional, default False) If True, Imaris won't pop-up a save
             print("Error: " + str(sys.exc_info()[1]))
             return False
 
+            
+    # @TODO
+    def createAndSetSpots(self):
+        """Creates Spots and adds them to the Surpass Scene."""
+        pass
+
+ 
+    def createDataset(self):
+        """Creates an Imaris dataset and replaces current one."""
+        pass
+
 
     def display(self):
         """Displays the string representation of the pIceImarisConnector object."""
@@ -336,14 +360,18 @@ Folders (i.e. IDataContainer objects) may be scanned (recursively)
 but are not returned. Optionally, the returned objects may be filtered
 by type.
 
-Arguments:
+SYNOPSIS:
+
+@TODO
+
+ARGUMENTS:
 
 recursive:  {True | False} If True, folders will be scanned recursively;
             if False, only objects at root level will be inspected.
 
-typeFilter: {True | False} (optional, default False) Filters the
-            children by type. Only the surpass children of the
-            specified type are returned; typeFilter is one of:
+typeFilter: (optional) Filters the children by type. Only the surpass 
+            children of the specified type are returned; typeFilter is
+            one of:
 
                 'Cells'
                 'ClippingPlane'
@@ -398,9 +426,82 @@ typeFilter: {True | False} (optional, default False) Filters the
         return children
 
 
-    def getDataVolume(self, channel, timepoint, iDataSet=None):
-        """Returns the data volume from Imaris."""
+    # @TODO
+    def getDataSubVolume(self, x0, y0, z0, channel,
+        timepoint, dX, dY, dZ, iDataSet=None):
+        """Returns a data subvolume from Imaris.
 
+SYNOPSIS:
+
+(1) stack = conn.getDataSubVolume(x0, y0, z0, channel, timepoint, dX, dY, dZ)
+(2) stack = conn.getDataSubVolume(x0, y0, z0, channel, timepoint, dX, dY, dZ,
+                                    iDataSet)
+
+ARGUMENTS:
+
+x0, y0, z0  : coordinates (0/1-based depending on indexing start) of
+              the top-left vertex of the subvolume to be returned.
+channel     : channel number (0/1-based depending on indexing start)
+timepoint   : timepoint number (0/1-based depending on indexing start)
+dX, dY, dZ  : extension of the subvolume to be returned
+iDataset    : (optional) get the data volume from the passed IDataset
+              object instead of current one; if omitted, current dataset
+              (i.e. self._mImarisApplication.GetDataSet()) will be used.
+              This is useful for instance when masking channels.
+
+Coordinates and extension are in voxels and not in units!
+
+The following holds:
+
+if conn.indexingStart == 0:
+
+    subA = conn.getDataSubVolume(x0, y0, z0, 0, 0, dX, dY, dZ);
+    A = conn.getDataVolume(0, 0);
+    A(x0 + 1 : x0 + dX, y0 + 1 : y0 + dY, z0 + 1 : z0 + dZ) === subA
+
+if conn.indexingStart == 1:
+
+    subA = conn.getDataSubVolume(x0, y0, z0, 1, 1, dX, dY, dZ);
+    A = conn.getDataVolume(1, 1);
+    A(x0 : x0 + dX - 1, y0 : y0 + dY - 1, z0 : z0 + dZ - 1) === subA
+
+OUTPUTS:
+
+stack : data subvolume (3D matrix)
+
+REMARKS:
+
+This function gets the volume as a 1D array and reshapes it in place.
+        """
+        pass
+
+
+    def getDataVolume(self, channel, timepoint, iDataSet=None):
+        """Returns the data volume from Imaris.
+
+SYNOPSIS:
+
+@TODO
+
+ARGUMENTS:
+
+channel:    channel number (0/1-based depending on indexing start)
+timepoint:  timepoint number (0/1-based depending on indexing start)
+iDataset:   (optional) get the data volume from the passed IDataset
+            object instead of current one; if omitted, current dataset
+            (i.e. self._mImarisApplication.GetDataSet()) will be used.
+            This is useful for instance when masking channels.
+
+OUTPUTS:
+
+stack    :  data volume (3D numpy array)
+
+REMARKS:
+ 
+    This function gets the volume as a 1D array and reshapes it in place.
+
+        """
+        
         if not self.isAlive():
             return None
 
@@ -503,6 +604,33 @@ typeFilter: {True | False} (optional, default False) Filters the
         return int(version)
 
 
+    def getPythonDataType(self):
+        """Returns the datatype of the dataset as a python numpy type 
+(e.g. one of np.uint8, np.uint16, np.float32, or None if the
+datatype is unknown to Imaris).
+        
+        """
+
+        if not self.isAlive():
+            return None
+
+        # Alias
+        iDataSet = self.mImarisApplication.GetDataSet()
+
+        # Get the dataset class
+        imarisDataType = str(iDataSet.GetType())
+        if imarisDataType == "eTypeUInt8":
+            return np.uint8
+        elif imarisDataType == "seTypeUInt16":
+            return np.uint16
+        elif imarisDataType == "eTypeFloat":
+            return np.float32
+        elif imarisDataType == "eTypeUnknown":
+            return None                        
+        else:
+            raise Exception("Bad value for iDataSet::getType().")
+
+
     def getSizes(self):
         """Returns the dataset sizes."""
 
@@ -513,13 +641,42 @@ typeFilter: {True | False} (optional, default False) Filters the
                 self._mImarisApplication.GetDataSet().GetSizeC(),
                 self._mImarisApplication.GetDataSet().GetSizeT())
 
+    # @TODO
+    def getSurpassCameraRotationMatrix(self):
+        """Calculates the rotation matrix that corresponds to current view in
+        the Surpass Scene (from the Camera Quaternion) for the axes with
+        "Origin Bottom Left". 
+        @TODOVerify the correctness for the other axes orientations.
+
+SYNOPSIS:
+
+[R, isI] = conn.getSurpassCameraRotationMatrix()
+ 
+ARGUMENTS:
+ 
+None
+ 
+OUTPUTS:
+ 
+R:      (4 x 4) rotation matrix
+isI:    true if the rotation matrix is the Identity matrix, i.e. the
+        camera is perpendicular to the dataset
+        
+        """
+        pass
+
+
     def getSurpassSelection(self, typeFilter=None):
         """Returns the auto-casted current surpass selection. If
 the 'typeFilter' parameter is specified, the object class is checked
 against it and None is returned instead of the object if the type
 does not match.
 
-Arguments:
+SYNOPSIS:
+
+@TODO
+
+ARGUMENTS:
 
 typeFilter: {True | False} (optional, default False) Specifies
             the expected object class. If the selected object
@@ -734,10 +891,39 @@ OUTPUT
         # Return the mapped coordinates in an array
         return p.tolist()
 
+
+    # @TODO
+    def mapRgbaScalarToVector(self, rgbaScalar):
+        """Maps an uint32 RGBA scalar to an 1-by-4, (0..1) vector.
+
+        """
+        pass
+
+
+    # @TODO
+    def mapRgbaVectorToScalar(self, rgbaVector):
+        """Maps an 1-by-4, (0..1) RGBA vector to an uint32 scalar.
+
+        """
+        pass
+
+
+    # @TODO
+    def setDataVolume(self, stack, channel, timepoint):
+        """Sets the data volume to Imaris.
+
+        """
+        pass
+
+
     def startImaris(self, userControl=False):
         """Starts an Imaris instance and stores the ImarisApplication ICE object.
 
-Arguments:
+SYNOPSIS:
+
+@TODO
+
+ARGUMENTS:
 
 userControl :   (optional, default False) The optional parameter
                 userControl sets the fate of Imaris when the client
@@ -907,7 +1093,11 @@ userControl :   (optional, default False) The optional parameter
         """Scans for candidate Imaris directories and returns the one
         with highest version number. For internal use only!
 
-Arguments:
+SYNOPSIS:
+
+@TODO
+
+ARGUMENTS:
 
 directory:  directory to be scanned. Most likely
             C:\\Program Files\\Bitplane in Windows and
@@ -1057,7 +1247,11 @@ can be reused.
     def _isOfType(self, obj, typeValue):
         """Checks that a passed object is of a given type.
 
-Arguments:
+SYNOPSIS:
+
+@TODO
+
+ARGUMENTS:
 
 obj: object for which the type is to be checked
 
