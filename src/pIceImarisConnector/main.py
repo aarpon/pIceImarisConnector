@@ -982,21 +982,26 @@ OUTPUT
         return p.tolist()
 
 
-    # @TODO
+    # @TODO Finish
     def mapRgbaScalarToVector(self, rgbaScalar):
         """Maps an uint32 RGBA scalar to an 1-by-4, (0..1) vector.
 
         """
-        pass
-
-
-    # @TODO
+        # @TODO Add checks (and make sure that rgbaScalar is 
+        # a numpy array
+        
+        return np.frombuffer(rgbaScalar.data, dtype=np.uint8)
+    
+    # @TODO Finish
     def mapRgbaVectorToScalar(self, rgbaVector):
         """Maps an 1-by-4, (0..1) RGBA vector to an uint32 scalar.
 
         """
-        pass
-
+    
+        # @TODO Add checks (and make sure that rgbaScalar is 
+        # a numpy array
+        rgba = np.frombuffer(rgbaVector.data, dtype=np.uint32)
+        return long(rgba[0]) 
 
     # @TODO
     def setDataVolume(self, stack, channel, timepoint):
