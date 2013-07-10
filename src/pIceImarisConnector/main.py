@@ -339,7 +339,32 @@ quiet : (optional, default False) If True, Imaris won't pop-up a save
             
     # @TODO
     def createAndSetSpots(self):
-        """Creates Spots and adds them to the Surpass Scene."""
+        """Creates Spots and adds them to the Surpass Scene.
+
+SYNOPSIS:
+ 
+(1) newSpots = createAndSetSpots(coords, timeIndices, radii, ...
+                      name, color)
+(2) newSpots = createAndSetSpots(coords, timeIndices, radii, ...
+                      name, color, container)
+ 
+ARGUMENTS:
+
+coords      : (nx3) [x y z]n coordinate matrix in dataset units
+timeIndices : (nx1) vector of spots time indices
+radii       : (nx1) vector of spots radii
+name        : name of the Spots object
+color       : (1x4), (0..1) vector of [R G B A] values
+container   : (optional) if not set, the Spots object is added at the
+              root of the Surpass Scene.
+              Please note that it is the user's responsibility to
+              attach the container to the surpass scene!
+
+OUTPUTS
+
+newSpots    : the generated Spots object.
+
+        """
         pass
 
  
