@@ -174,47 +174,48 @@ if __name__ == '__main__':
     coords = (np.array(vSpotsData.mPositionsXYZ) + 1.00).tolist()
     timeIndices = vSpotsData.mIndicesT
     radii = vSpotsData.mRadii
-    #conn.createAndSetSpots(coords, timeIndices, radii, 'Test',  np.random.uniform(0, 1, 4))
-    # spots = conn.getAllSurpassChildren(0, 'Spots')
-    # assert(numel(spots) == 2)
-    # 
-    # # Check the filtering and recursion of object finding
-    # # =========================================================================
-    # print('Get all 7 children with recursion (no filtering)...')
-    # children = conn.getAllSurpassChildren(1)
-    # assert(numel(children) == 7)
-    # 
-    # print('Check that there is exactly 1 Light Source...')
-    # children = conn.getAllSurpassChildren(1, 'LightSource')
-    # assert(numel(children) == 1)
-    # 
-    # print('Check that there is exactly 1 Frame...')
-    # children = conn.getAllSurpassChildren(1, 'Frame')
-    # assert(numel(children) == 1)
-    # 
-    # print('Check that there is exactly 1 Volume...')
-    # children = conn.getAllSurpassChildren(1, 'Volume')
-    # assert(numel(children) == 1)
-    # 
-    # print('Check that there are exactly 2 Spots...')
-    # children = conn.getAllSurpassChildren(1, 'Spots')
-    # assert(numel(children) == 2)
-    # 
-    # print('Check that there is exactly 1 Surface...')
-    # children = conn.getAllSurpassChildren(1, 'Surfaces')
-    # assert(numel(children) == 1)
-    # 
-    # print('Check that there is exactly 1 Measurement Point...')
-    # children = conn.getAllSurpassChildren(1, 'MeasurementPoints')
-    # assert(numel(children) == 1)
-    # 
-    # 
-    # # Get the type
-    # # =========================================================================
-    # print('Get and check the datatype...')
-    # type = conn.getMatlabDatatype()
-    # assert(strcmp(type, 'uint8') == 1)
-    # 
+    conn.createAndSetSpots(coords, timeIndices, radii, 'Test',  np.random.uniform(0, 1, 4))
+    spots = conn.getAllSurpassChildren(False, 'Spots')
+    assert(len(spots) == 2)
+
+    # Check the filtering and recursion of object finding
+    # =========================================================================
+    print('Get all 7 children with recursion (no filtering)...')
+    children = conn.getAllSurpassChildren(True)
+    assert(len(children) == 7)
+ 
+    print('Check that there is exactly 1 Light Source...')
+    children = conn.getAllSurpassChildren(True, 'LightSource')
+    assert(len(children) == 1)
+ 
+    print('Check that there is exactly 1 Frame...')
+    children = conn.getAllSurpassChildren(True, 'Frame')
+    assert(len(children) == 1)
+ 
+    print('Check that there is exactly 1 Volume...')
+    children = conn.getAllSurpassChildren(True, 'Volume')
+    assert(len(children) == 1)
+ 
+    print('Check that there are exactly 2 Spots...')
+    children = conn.getAllSurpassChildren(True, 'Spots')
+    assert(len(children) == 2)
+ 
+    print('Check that there is exactly 1 Surface...')
+    children = conn.getAllSurpassChildren(True, 'Surfaces')
+    assert(len(children) == 1)
+ 
+    print('Check that there is exactly 1 Measurement Point...')
+    children = conn.getAllSurpassChildren(True, 'MeasurementPoints')
+    assert(len(children) == 1)
+ 
+ 
+    # Get the type
+    # =========================================================================
+    print('Get and check the datatype...')
+    datatype = conn.getNumpyDatatype()
+    print datatype
+    assert(datatype == np.uint8)
+
     # # Get the data volume
     # # =========================================================================
     # print('Get the data volume...')

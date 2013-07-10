@@ -1,4 +1,17 @@
-# pIceImarisConnector setup script
+# pIceImarisConnectorTestUnit setup script
+#
+# Use:
+#
+# python setup.py install
+#
+# to install in current python installation, or 
+#
+# python setup.py bdist --formats=wininst
+#
+# to create a Windows installer.
+#
+# Copyright, Aaron Ponti, 2013
+
 from distutils.core import setup
 setup(name='pIceImarisConnectortTestUnit',
       license='GPL v2',

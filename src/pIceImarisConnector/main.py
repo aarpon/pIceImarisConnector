@@ -45,7 +45,7 @@ class pIceImarisConnector(object):
     """
 
     # pIceImarisConnector version
-    _mVersion = "0.3.2-alpha"
+    _mVersion = "0.3.1-alpha"
 
     # Imaris-related paths
     _mImarisPath = ""
@@ -354,11 +354,12 @@ SYNOPSIS:
  
 ARGUMENTS:
 
-coords      : (nx3) [x y z]n coordinate matrix (numpy array) in dataset units
-timeIndices : (nx1) vector (numpy array) of spots time indices
-radii       : (nx1) vector (numpy array) of spots radii
+coords      : (nx3) [x y z]n coordinate matrix (list) 
+              in dataset units
+timeIndices : (nx1) vector (list) of spots time indices
+radii       : (nx1) vector (list) of spots radii
 name        : name of the Spots object
-color       : (1x4), (0..1) vector of [R G B A] values
+color       : (1x4), (0..1) vector (list, tuple or Numpy Array) of [R G B A] values
 container   : (optional) if not set, the Spots object is added at the
               root of the Surpass Scene.
               Please note that it is the user's responsibility to
@@ -369,38 +370,40 @@ OUTPUTS
 newSpots    : the generated Spots object.
 
         """
-        if not self._isAlive():
-            return
+        if not self.isAlive():
+            return None
 
-        # Check inputs
-        if not isinstance(coords, np.ndarray):
-            raise TypeError("coords must be a numpy array.")
+        # Check input argument coords
+        if not isinstance(coords, list):
+            raise TypeError("coords must be a list.")
 
-        if coords.shape[1] != 2:
+        nDims = len(coords[0]) if len(coords) != 0 else 0
+        if nDims == 0:
+            return None
+        
+        if nDims != 3:
             raise ValueError("coords must be an nx3 matrix of coordinates.")
 
-        if not isinstance(timeIndices, np.ndarray):
-            raise TypeError("timeIndices must be a numpy array.")
+        # Check input argument timeIndices
+        if not isinstance(timeIndices, list):
+            raise TypeError("timeIndices must be a list.")
         
-        if not isinstance(radii, np.ndarray):
-            raise TypeError("radii must be a numpy array.")        
-
-        # Make sure that the coords array is a float; if not, cast
-        if coords.dtype != 'float32':
-            coords = np.asarray(coords, np.float32)
+        # Check input argument radii
+        if not isinstance(radii, list):
+            raise TypeError("radii must be a list.")        
 
         # Check argument size consistency
-        nSpots = coords.shape[0]
-        timeIndices = (timeIndices.T).ravel()
-        if timeIndices.shape[0] != nSpots:
+        nSpots = len(coords)
+        if len(timeIndices) != nSpots:
             raise ValueError("timeIndices must contain " +
                              str(nSpots) + "elements.")
-        radii = (radii.T).ravel()
-        if radii.shape[0] != nSpots:
+            
+        if len(radii) != nSpots:
             raise ValueError("radii must contain " +
                              str(nSpots) + "elements.")
             
         # Check the color vector
+        color = np.array(color, dtype=np.float32)
         if color.ndim != 1 or color.shape[0] != 4 or \
         np.any(np.logical_or(color < 0, color > 1)):
             raise ValueError("color must be a vector with 4 elements in " +
@@ -429,7 +432,7 @@ newSpots    : the generated Spots object.
         # Add the new Spots object to the container
         container.AddChild(newSpots, -1)
         
-        # Return it
+        # Return it
         return newSpots
         
 
@@ -584,7 +587,7 @@ iDataset:   (optional) get the data volume from the passed IDataset
 
 OUTPUTS:
 
-stack    :  data volume (3D numpy array)
+stack    :  data volume (3D Numpy array)
 
 REMARKS:
  
@@ -694,8 +697,8 @@ REMARKS:
         return int(version)
 
 
-    def getPythonDataType(self):
-        """Returns the datatype of the dataset as a python numpy type 
+    def getNumpyDatatype(self):
+        """Returns the datatype of the dataset as a python Numpy type 
 (e.g. one of np.uint8, np.uint16, np.float32, or None if the
 datatype is unknown to Imaris).
         
@@ -988,7 +991,7 @@ OUTPUT
 
         """
         # @TODO Add checks (and make sure that rgbaScalar is 
-        # a numpy array
+        # a Numpy array
         
         return np.frombuffer(rgbaScalar.data, dtype=np.uint8)
     
@@ -999,7 +1002,7 @@ OUTPUT
         """
     
         # @TODO Add checks (and make sure that rgbaScalar is 
-        # a numpy array
+        # a Numpy array
         rgba = np.frombuffer(rgbaVector.data, dtype=np.uint32)
         return long(rgba[0]) 
 
@@ -1271,7 +1274,8 @@ directory:  directory to be scanned. Most likely
             if self.mImarisApplication.GetFactory().IsDataContainer(child):
                 if recursive == True:
                     children = self._getChildrenAtLevel(self.autocast(child),
-                                                        recursive)
+                                                        recursive,
+                                                        children)
             else:
                 children.append(self.autocast(child))
 
@@ -1290,7 +1294,7 @@ directory:  directory to be scanned. Most likely
             if self.mImarisApplication.GetFactory().IsDataContainer(child):
                 if recursive == True:
                     children = self._getFilteredChildrenAtLevel(
-                        self.autocast(child), recursive, typeFilter)
+                        self.autocast(child), recursive, typeFilter, children)
             else:
                 currentChild = self.autocast(child);
                 if self._isOfType(currentChild, typeFilter):
