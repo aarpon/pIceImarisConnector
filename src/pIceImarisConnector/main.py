@@ -1,5 +1,5 @@
 """
-Name      pIceImarisConnector
+Name      IceImarisConnector for python (pIceImarisConnector)
 Purpose   pIceImarisConnector is a simple Python class eases communication
           between Bitplane Imaris and Python using the Imaris XT interface.
 
@@ -67,6 +67,7 @@ class pIceImarisConnector(object):
 
     # Use control
     _mUserControl = 0
+
 
     @property
     def version(self):
@@ -155,7 +156,9 @@ indexingStart     : (optional, default is 0) either 0 or 1,
 
         # If imarisApplication is a pIceImarisConnector reference,
         # we return immediately, because we want to re-use the
-        # object without changes.
+        # object without changes. The __new__() method took care of 
+        # returnig a reference to the passed object instead of creating
+        # a new one.
         if imarisApplication is not None and \
                 type(imarisApplication).__name__ == "pIceImarisConnector":
             return
@@ -338,7 +341,8 @@ quiet : (optional, default False) If True, Imaris won't pop-up a save
 
             
     # @TODO
-    def createAndSetSpots(self):
+    def createAndSetSpots(self, coords, timeIndices, radii, name,
+                          color, container=None):
         """Creates Spots and adds them to the Surpass Scene.
 
 SYNOPSIS:
@@ -350,9 +354,9 @@ SYNOPSIS:
  
 ARGUMENTS:
 
-coords      : (nx3) [x y z]n coordinate matrix in dataset units
-timeIndices : (nx1) vector of spots time indices
-radii       : (nx1) vector of spots radii
+coords      : (nx3) [x y z]n coordinate matrix (numpy array) in dataset units
+timeIndices : (nx1) vector (numpy array) of spots time indices
+radii       : (nx1) vector (numpy array) of spots radii
 name        : name of the Spots object
 color       : (1x4), (0..1) vector of [R G B A] values
 container   : (optional) if not set, the Spots object is added at the
@@ -365,9 +369,70 @@ OUTPUTS
 newSpots    : the generated Spots object.
 
         """
-        pass
+        if not self._isAlive():
+            return
 
- 
+        # Check inputs
+        if not isinstance(coords, np.ndarray):
+            raise TypeError("coords must be a numpy array.")
+
+        if coords.shape[1] != 2:
+            raise ValueError("coords must be an nx3 matrix of coordinates.")
+
+        if not isinstance(timeIndices, np.ndarray):
+            raise TypeError("timeIndices must be a numpy array.")
+        
+        if not isinstance(radii, np.ndarray):
+            raise TypeError("radii must be a numpy array.")        
+
+        # Make sure that the coords array is a float; if not, cast
+        if coords.dtype != 'float32':
+            coords = np.asarray(coords, np.float32)
+
+        # Check argument size consistency
+        nSpots = coords.shape[0]
+        timeIndices = (timeIndices.T).ravel()
+        if timeIndices.shape[0] != nSpots:
+            raise ValueError("timeIndices must contain " +
+                             str(nSpots) + "elements.")
+        radii = (radii.T).ravel()
+        if radii.shape[0] != nSpots:
+            raise ValueError("radii must contain " +
+                             str(nSpots) + "elements.")
+            
+        # Check the color vector
+        if color.ndim != 1 or color.shape[0] != 4 or \
+        np.any(np.logical_or(color < 0, color > 1)):
+            raise ValueError("color must be a vector with 4 elements in " +
+                             "the 0 .. 1 range.")
+        
+        # If the container was not specified, add to the Surpass Scene
+        if container is None:
+            container = self._mImarisApplication.GetSurpassScene()
+        else:
+            # Make sure the container is valid
+            if not self._mImarisApplication.GetFactory().IsDataContainer():
+                raise ValueError("Invalid data container!")
+
+        # Create a new Spots object
+        newSpots = self._mImarisApplication.GetFactory().CreateSpots()
+        
+        # Set coordinates, time indices and radii
+        newSpots.Set(coords, timeIndices, radii)
+        
+        # Set the name
+        newSpots.SetName(name)
+        
+        # Set the color
+        newSpots.SetColorRGBA(self.mapRgbaVectorToScalar(color))
+        
+        # Add the new Spots object to the container
+        container.AddChild(newSpots, -1)
+        
+        # Return it
+        return newSpots
+        
+
     def createDataset(self):
         """Creates an Imaris dataset and replaces current one."""
         pass
@@ -671,7 +736,7 @@ datatype is unknown to Imaris).
         """Calculates the rotation matrix that corresponds to current view in
         the Surpass Scene (from the Camera Quaternion) for the axes with
         "Origin Bottom Left". 
-        @TODOVerify the correctness for the other axes orientations.
+        @TODO Verify the correctness for the other axes orientations.
 
 SYNOPSIS:
 
