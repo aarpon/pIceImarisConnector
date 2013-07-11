@@ -1,1 +1,0 @@
-from pIceImarisConnector.main import pIceImarisConnector
