@@ -9,100 +9,96 @@ Copyright  (c) Aaron Ponti 2013
 Licence    GPL v2
 '''
 
-import unittest
 import os
 import numpy as np;
 
 from pIceImarisConnector import pIceImarisConnector
 
-class test_pIceImarisConnector(unittest.TestCase):
-    
-    _conn = None
-
-    # Start with some fundamental tests
-    # =========================================================================
-
-    # Instantiating IceImarisConnector object with no parameters
-    def test_init_no_params(self):
-        self._conn = pIceImarisConnector()
-        self._conn.display()
-        self._conn.info()
-
-    # Pass the existing pIceImarisConnector object - will return the reference
-    def test_init_with_conn(self):
-        conn2 = pIceImarisConnector(self._conn)
-        self.assertTrue(self._conn is conn2,
-                        "The references do not point to the same object.")
-        del(conn2)
+if __name__ == '__main__':
 
     # ImarisConnector version
     # =========================================================================
-    def test_get_version(self):
-        self.assertTrue(self._conn.version is not "",
-                        "Could not get version info.")
-        
+    conn = pIceImarisConnector()
+    print('Testing IceImarisConnector version ' + conn.version)
+    del(conn)
+
+    # Instantiate pIceImarisConnector object without parameters
+    # =========================================================================
+    print('Instantiate pIceImarisConnector conn1 object without parameters...')
+    conn1 = pIceImarisConnector()
+    conn1.display()
+    conn1.info()
+
+    # Instantiate pIceImarisConnector object with existing instance as parameter
+    # =========================================================================
+    print('Instantiate pIceImarisConnector object conn2 with existing instance conn1 as parameter...')
+    conn2 = pIceImarisConnector(conn1)
+    
+    # Check that conn1 and conn2 are the same object
+    # =========================================================================
+    print("Check that conn1 and conn2 are the same object...")
+    assert(conn1 is conn2)
+    
+    # Delete the objects
+    # =========================================================================
+    del(conn1)
+    del(conn2)
+    
+    # Create an ImarisConnector object
+    # =========================================================================
+    print('Create a pIceImarisConnector object...')
+    conn = pIceImarisConnector()
+    
     # Start Imaris
     # =========================================================================
-    def test_start_Imaris(self):
-        self.assertTrue(self._conn.startImaris() == True, 
-                        "Failed starting Imaris.")
+    print('Start Imaris...')
+    assert(conn.startImaris() == True)
     
     # Test that the connection is valid
     # =========================================================================
-    def test_get_version_int(self):
-        self.assertTrue(self._conn.getImarisVersionAsInteger() > 0,
-                        "Could not get version as integer.")
-    
-    def test_is_alive(self):
-        self.assertTrue(self._conn.isAlive() == True,
-                        "No connection with Imaris.")
+    print('Get version...')
+    assert(conn.getImarisVersionAsInteger() > 0)
+    print('Test if connection is alive...')
+    assert(conn.isAlive() == True)
     
     # Check the starting index
     # =========================================================================
-    def test_starting_index(self):
-        self.assertTrue(self._conn.indexingStart == 0,
-                        "Default indexing start is not zero.")
+    print('Check default starting index...')
+    assert(conn.indexingStart == 0)
     
     # Open a file
     # =======================================================s==================
-    def test_load_file(self):
-        currFilePath = os.path.realpath(__file__)
-        currPath = os.path.dirname(currFilePath)
-        filename = os.path.join(currPath, 'PyramidalCell.ims')
-        self._conn.mImarisApplication.FileOpen(filename, '')
+    print('Load file...')
+    currFilePath = os.path.realpath(__file__)
+    currPath = os.path.dirname(currFilePath)
+    filename = os.path.join(currPath, 'PyramidalCell.ims')
+    conn.mImarisApplication.FileOpen(filename, '')
     
     # Check that there is something loaded
     # =========================================================================
-    def test_is_dataset_loaded(self):
-        self.assertTrue(self._conn.mImarisApplication.GetDataSet().GetSizeX > 0,
-                        "No dataset loaded.")
+    print('Test that the file was loaded...')
+    assert(conn.mImarisApplication.GetDataSet().GetSizeX > 0)
     
     # Check the extends
     # =========================================================================
-    def test_extends_tuple(self):
-        EXTENDS = (-0.1140, 57.8398, -0.1140, 57.8398, -0.1510, 20.6310)
-        extends = self._conn.getExtends()
-        self.assertTrue(all([abs(x - y) < 1e-4 for x, y in zip(EXTENDS, extends)]),
-                        "Extends do not match.")
-
-    def test_extends_individual(self):     
-        minX, maxX, minY, maxY, minZ, maxZ = self._conn.getExtends()
-        self.assertTrue(all([abs(x - y) < 1e-4 for x, y in \
-                zip(EXTENDS, (minX, maxX, minY, maxY, minZ, maxZ))]),
-                        "Extends do not match.")
+    print('Check the dataset extends...')
+    EXTENDS = (-0.1140, 57.8398, -0.1140, 57.8398, -0.1510, 20.6310)
+    extends = conn.getExtends()
+    assert(all([abs(x - y) < 1e-4 for x, y in zip(EXTENDS, extends)]))
+     
+    minX, maxX, minY, maxY, minZ, maxZ = conn.getExtends()
+    assert(all([abs(x - y) < 1e-4 for x, y in \
+                zip(EXTENDS, (minX, maxX, minY, maxY, minZ, maxZ))]))
     
     # Check the voxel size
     # =========================================================================
-    def test_voxel_size_tuple(self):
-        VOXELSIZES = (0.2273, 0.2282, 0.3012)
-        voxelSizes = self._conn.getVoxelSizes()
-        self.assertTrue(all([abs(x - y) < 1e-4 for x, y in zip(VOXELSIZES, voxelSizes)]),
-                        "Voxel sizes do not match.")
+    print('Check the voxel size...')
+    VOXELSIZES = (0.2273, 0.2282, 0.3012)
+    voxelSizes = conn.getVoxelSizes()
+    assert(all([abs(x - y) < 1e-4 for x, y in zip(VOXELSIZES, voxelSizes)]))
  
-    def test_voxel_size_individual(self):
-        vX, vY, vZ = conn.getVoxelSizes()
-        self.assertTrue(all([abs(x - y) < 1e-4 for x, y in zip(VOXELSIZES, (vX, vY, vZ))]),
-                        "Voxel sizes do not match.")
+    vX, vY, vZ = conn.getVoxelSizes()
+    assert(all([abs(x - y) < 1e-4 for x, y in zip(VOXELSIZES, (vX, vY, vZ))]))
 
     # Check the dataset size
     #
@@ -113,148 +109,112 @@ class test_pIceImarisConnector(unittest.TestCase):
     #   T =   1
     #
     # =========================================================================
-    def tast_dataset_size_tuple(self):
-        DATASETSIZE = (255, 254, 69, 1, 1)
-        sizes = self._conn.getSizes()
-        self.assertTrue(DATASETSIZE == sizes,
-                        "Dataset size does not match.")    
+    print('Check the dataset size...')
+    DATASETSIZE = (255, 254, 69, 1, 1)
+    sizes = conn.getSizes()
+    assert(DATASETSIZE == sizes)    
     
-    def tast_dataset_size_individual(self):
-        sizeX, sizeY, sizeZ, sizeC, sizeT = self._conn.getSizes()
-        self.assertTrue(sizeX == DATASETSIZE[0] and
-                        sizeY == DATASETSIZE[1] and
-                        sizeZ == DATASETSIZE[2] and
-                        sizeC == DATASETSIZE[3] and
-                        sizeT == DATASETSIZE[4],
-                        "Dataset size does not match.")
+    sizeX, sizeY, sizeZ, sizeC, sizeT = conn.getSizes()
+    assert(sizeX == DATASETSIZE[0])
+    assert(sizeY == DATASETSIZE[1])
+    assert(sizeZ == DATASETSIZE[2])
+    assert(sizeC == DATASETSIZE[3])
+    assert(sizeT == DATASETSIZE[4])
  
-    # Check getting children
+    # Get a spot object, its coordinates and check the unit conversions
     # =========================================================================
-    def test_count_children_at_root(self):
-        children = self._conn.getAllSurpassChildren(False) # No recursion
-        self.assertTrue(len(children) == 4,
-                        "There should be 4 children at the root level.")
+    print('Count all children at root level...')
+    children = conn.getAllSurpassChildren(False) # No recursion
+    assert(len(children) == 4)
      
     # If the casting in getAllSurpassChildren() works, spot is an actual
     # spot object, and not an IDataItem. If the casting worked, the object will
     # have a method 'GetPositionsXYZ'.
-    def test_autocast(self):
-        child = self._conn.getAllSurpassChildren(False, 'Spots')
-        spot = child[ 0 ]
-        self.assertTrue(callable(getattr(spot, 'GetPositionsXYZ')) == True,
-                        "Autocasting of spot object failed.")
+    print('Test autocasting...')
+    child = conn.getAllSurpassChildren(False, 'Spots')
+    assert(len(child) == 1)
+    spot = child[ 0 ]
+    assert(callable(getattr(spot, 'GetPositionsXYZ')) == True)
     
-
-    # Get and compare spot coordinates
-    def test_get_spot_coords(self):
-        # Get the coordinates
-        child = self._conn.getAllSurpassChildren(False, 'Spots')
-        spot = child[ 0 ]
-        pos = spot.GetPositionsXYZ()
+    # Get the coordinates
+    pos = spot.GetPositionsXYZ()
     
-        # These are the expected spot coordinates
-        POS = [
-               [18.5396,    1.4178,    8.7341],
-               [39.6139,   14.8819,    9.0352],
-               [35.1155,    9.4574,    9.0352],
-               [12.3907,   21.6221,   11.7459]]
+    # These are the expected spot coordinates
+    print('Check spot coordinates and conversions units<->pixels...')
+    POS = [
+           [18.5396,    1.4178,    8.7341],
+           [39.6139,   14.8819,    9.0352],
+           [35.1155,    9.4574,    9.0352],
+           [12.3907,   21.6221,   11.7459]]
 
-        self.assertTrue(np.all(abs(np.array(pos) - np.array(POS)) < 1e-4),
-                        "Spot coordinates do not match.")
-        
-    # Convert back and forth
-    def test_spot_coords_conversions(self):
-        # Get the coordinates
-        child = self._conn.getAllSurpassChildren(False, 'Spots')
-        spot = child[ 0 ]
-        pos = spot.GetPositionsXYZ()
-        
-        # Convert
-        posV = conn.mapPositionsUnitsToVoxels(pos)
-        posU = conn.mapPositionsVoxelsToUnits(posV)
+    assert(np.all(abs(np.array(pos) - np.array(POS)) < 1e-4))
+
+    # Convert
+    posV = conn.mapPositionsUnitsToVoxels(pos)
+    posU = conn.mapPositionsVoxelsToUnits(posV)
  
-        # Check the conversion
-        self.assertTrue(np.all(abs(np.array(posU) - np.array(POS)) < 1e-4),
-                        "Coordinate conversions failed.")
+    # Check the conversion
+    assert(np.all(abs(np.array(posU) - np.array(POS)) < 1e-4))
     
     # Test filtering the selection
     # =========================================================================
+    print('Test filtering the surpass selection by type...')
+ 
+    # "Select" the spots object
+    conn.mImarisApplication.SetSurpassSelection(children[3])
 
-    def test_filter_spot(self):
-        # "Select" the spots object
-        self._conn.mImarisApplication.SetSurpassSelection(children[3])
-        self.assertTrue(isinstance(conn.getSurpassSelection('Spots'),
-                                   type(children[3])),
-                        "Failed retrieving Spots object.")
+    # Now get it back, first with the right filter, then with the wrong one
+    assert(isinstance(conn.getSurpassSelection('Spots'), type(children[3])))
+    assert(conn.getSurpassSelection('Surfaces') is None)
 
     # Test creating and adding new spots
     # =========================================================================
-    def test_create_spots(self):
-        child = self._conn.getAllSurpassChildren(False, 'Spots')
-        spot = child[ 0 ]
-        vSpotsData = spot.Get()
-        coords = (np.array(vSpotsData.mPositionsXYZ) + 1.00).tolist()
-        timeIndices = vSpotsData.mIndicesT
-        radii = vSpotsData.mRadii
-        self._conn.createAndSetSpots(coords, timeIndices, radii, 'Test',  
-                                     np.random.uniform(0, 1, 4))
-        spots = self._conn.getAllSurpassChildren(False, 'Spots')
-        self.assertTrue(len(spots) == 2,
-                        "Failed creating spot object.")
+    print('Test creation of new spots...')
+    vSpotsData = spot.Get()
+    coords = (np.array(vSpotsData.mPositionsXYZ) + 1.00).tolist()
+    timeIndices = vSpotsData.mIndicesT
+    radii = vSpotsData.mRadii
+    conn.createAndSetSpots(coords, timeIndices, radii, 'Test',  np.random.uniform(0, 1, 4))
+    spots = conn.getAllSurpassChildren(False, 'Spots')
+    assert(len(spots) == 2)
 
     # Check the filtering and recursion of object finding
     # =========================================================================
-    
-    # Get all 7 children with recursion (no filtering)
-    def test_more_filtering(self):
-        children = self._conn.getAllSurpassChildren(True)
-        self.assertTrue(len(children) == 7,
-                        "Expected 7 objects.")
+    print('Get all 7 children with recursion (no filtering)...')
+    children = conn.getAllSurpassChildren(True)
+    assert(len(children) == 7)
  
-    # Check that there is exactly 1 LightSource
-    def test_find_one_light_source(self):
-        children = self._conn.getAllSurpassChildren(True, 'LightSource')
-        self.assertTrue(len(children) == 1,
-                        "Expected on light source.")
+    print('Check that there is exactly 1 Light Source...')
+    children = conn.getAllSurpassChildren(True, 'LightSource')
+    assert(len(children) == 1)
  
-    # Check that there is exactly 1 Frame
-    def test_find_one_frame(self):
-        children = self._conn.getAllSurpassChildren(True, 'Frame')
-        self.assertTrue(len(children) == 1,
-                        "Expected one frame.")
+    print('Check that there is exactly 1 Frame...')
+    children = conn.getAllSurpassChildren(True, 'Frame')
+    assert(len(children) == 1)
  
-    # Check that there is exactly 1 Volume
-    def test_find_one_volume(self):
-        children = self._conn.getAllSurpassChildren(True, 'Volume')
-        self.assertTrue(len(children) == 1,
-                        "Expected one Volume.")
+    print('Check that there is exactly 1 Volume...')
+    children = conn.getAllSurpassChildren(True, 'Volume')
+    assert(len(children) == 1)
  
-    # Check that there are exactly 2 Spots
-    def test_find_two_spots(self):
-        children = self._conn.getAllSurpassChildren(True, 'Spots')
-        self.assertTrue(len(children) == 2,
-                        "Expected two Spots.")
+    print('Check that there are exactly 2 Spots...')
+    children = conn.getAllSurpassChildren(True, 'Spots')
+    assert(len(children) == 2)
  
-    # Check that there is exactly 1 Surface
-    def test_find_one_surface(self):
-        children = self._conn.getAllSurpassChildren(True, 'Surfaces')
-        self.assertTrue(len(children) == 1,
-                        "Expected one surface.")
+    print('Check that there is exactly 1 Surface...')
+    children = conn.getAllSurpassChildren(True, 'Surfaces')
+    assert(len(children) == 1)
  
-    # Check that there is exactly 1 Measurement Point
-    def test_find_one_meaurement_point(self):
-        children = self._conn.getAllSurpassChildren(True, 'MeasurementPoints')
-        self.assertTrue(len(children) == 1,
-                        "Expected one measurement point.")
+    print('Check that there is exactly 1 Measurement Point...')
+    children = conn.getAllSurpassChildren(True, 'MeasurementPoints')
+    assert(len(children) == 1)
  
  
     # Get the type
     # =========================================================================
-    # Get and check the datatype
-    def test_datatype(self):
-        datatype = self._conn.getNumpyDatatype()
-        self.assertTrue(datatype == np.uint8,
-                        "Wrong datatype.")
+    print('Get and check the datatype...')
+    datatype = conn.getNumpyDatatype()
+    print datatype
+    assert(datatype == np.uint8)
 
     # # Get the data volume
     # # =========================================================================
@@ -427,19 +387,15 @@ class test_pIceImarisConnector(unittest.TestCase):
  
     # Close Imaris
     # =========================================================================
-    def test_close_Imaris(self):
-        self.assertTrue(self._conn.closeImaris(True) == 1,
-                        "Could not close Imaris.")
+    print('Close Imaris...')
+    assert(conn.closeImaris(True) == 1)
  
     # Make sure Imaris is closed
     # =========================================================================
-    def test_Imaris_is_closed(self):
-        self.assertTrue(self._conn.isAlive() == False,
-                        "Imaris is not closed.")
+    print('Make sure Imaris is closed...')
+    assert(conn.isAlive() == False)
  
-
-
-    
-if __name__ == '__main__':
-    unittest.main()
-    
+    # All done
+    # =========================================================================
+    print('')
+    print('All test succesfully run.')
