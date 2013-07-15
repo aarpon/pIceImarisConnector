@@ -132,7 +132,7 @@ indexingStart     : (optional, default is 0) either 0 or 1,
                     consistency across MATLAB and ICE.
 
                     Since pIceImarisConnector strives to offer
-                    the same API as its MATLAB counterpart, 
+                    the same API as its MATLAB counterpart,
                     indexingStart can be set here as well, though
                     in practice it might not make much sense to
                     change the default value of 0.
@@ -156,7 +156,7 @@ indexingStart     : (optional, default is 0) either 0 or 1,
 
         # If imarisApplication is a pIceImarisConnector reference,
         # we return immediately, because we want to re-use the
-        # object without changes. The __new__() method took care of 
+        # object without changes. The __new__() method took care of
         # returnig a reference to the passed object instead of creating
         # a new one.
         if imarisApplication is not None and \
@@ -191,10 +191,10 @@ indexingStart     : (optional, default is 0) either 0 or 1,
 
         # Now we check the (optional) input parameter imarisApplication.
         # We have three remaining cases (the first one we took care of
-        # already; it was the case where imarisApplication was a 
-        # reference to an existing pIceImarisConnector object): 
-        # - if imarisApplication is omitted, we just create a 
-        #   pIceImarisConnector object that does nothing. Alternatively, 
+        # already; it was the case where imarisApplication was a
+        # reference to an existing pIceImarisConnector object):
+        # - if imarisApplication is omitted, we just create a
+        #   pIceImarisConnector object that does nothing. Alternatively,
         #   imarisApplication could be:
         # - an Imaris Application ID as provided by Imaris: we query
         #   the Imaris Server for the application and assign it to the
@@ -339,22 +339,22 @@ quiet : (optional, default False) If True, Imaris won't pop-up a save
             print("Error: " + str(sys.exc_info()[1]))
             return False
 
-            
+
     # @TODO
     def createAndSetSpots(self, coords, timeIndices, radii, name,
                           color, container=None):
         """Creates Spots and adds them to the Surpass Scene.
 
 SYNOPSIS:
- 
+
 (1) newSpots = createAndSetSpots(coords, timeIndices, radii, ...
                       name, color)
 (2) newSpots = createAndSetSpots(coords, timeIndices, radii, ...
                       name, color, container)
- 
+
 ARGUMENTS:
 
-coords      : (nx3) [x y z]n coordinate matrix (list) 
+coords      : (nx3) [x y z]n coordinate matrix (list)
               in dataset units
 timeIndices : (nx1) vector (list) of spots time indices
 radii       : (nx1) vector (list) of spots radii
@@ -380,35 +380,35 @@ newSpots    : the generated Spots object.
         nDims = len(coords[0]) if len(coords) != 0 else 0
         if nDims == 0:
             return None
-        
+
         if nDims != 3:
             raise ValueError("coords must be an nx3 matrix of coordinates.")
 
         # Check input argument timeIndices
         if not isinstance(timeIndices, list):
             raise TypeError("timeIndices must be a list.")
-        
+
         # Check input argument radii
         if not isinstance(radii, list):
-            raise TypeError("radii must be a list.")        
+            raise TypeError("radii must be a list.")
 
         # Check argument size consistency
         nSpots = len(coords)
         if len(timeIndices) != nSpots:
             raise ValueError("timeIndices must contain " +
                              str(nSpots) + "elements.")
-            
+
         if len(radii) != nSpots:
             raise ValueError("radii must contain " +
                              str(nSpots) + "elements.")
-            
+
         # Check the color vector
         color = np.array(color, dtype=np.float32)
         if color.ndim != 1 or color.shape[0] != 4 or \
         np.any(np.logical_or(color < 0, color > 1)):
             raise ValueError("color must be a vector with 4 elements in " +
                              "the 0 .. 1 range.")
-        
+
         # If the container was not specified, add to the Surpass Scene
         if container is None:
             container = self._mImarisApplication.GetSurpassScene()
@@ -419,22 +419,22 @@ newSpots    : the generated Spots object.
 
         # Create a new Spots object
         newSpots = self._mImarisApplication.GetFactory().CreateSpots()
-        
+
         # Set coordinates, time indices and radii
         newSpots.Set(coords, timeIndices, radii)
-        
+
         # Set the name
         newSpots.SetName(name)
-        
+
         # Set the color
         newSpots.SetColorRGBA(self.mapRgbaVectorToScalar(color))
-        
+
         # Add the new Spots object to the container
         container.AddChild(newSpots, -1)
-        
+
         # Return it
         return newSpots
-        
+
 
     def createDataset(self):
         """Creates an Imaris dataset and replaces current one."""
@@ -462,7 +462,7 @@ ARGUMENTS:
 recursive:  {True | False} If True, folders will be scanned recursively;
             if False, only objects at root level will be inspected.
 
-typeFilter: (optional) Filters the children by type. Only the surpass 
+typeFilter: (optional) Filters the children by type. Only the surpass
             children of the specified type are returned; typeFilter is
             one of:
 
@@ -590,11 +590,11 @@ OUTPUTS:
 stack    :  data volume (3D Numpy array)
 
 REMARKS:
- 
+
     This function gets the volume as a 1D array and reshapes it in place.
 
         """
-        
+
         if not self.isAlive():
             return None
 
@@ -623,22 +623,20 @@ REMARKS:
         if imarisDataType == "eTypeUInt8":
             # Ice returns uint8 as a string: we must cast. This behavior might
             # be changed in the future.
-            arr = np.fromstring(iDataSet.GetDataVolumeAs1DArrayBytes(channel, timepoint),
-                                dtype=np.uint8)
-        elif imarisDataType == "seTypeUInt16":
+            arr = np.array(iDataSet.GetDataVolumeAs1DArrayBytes(channel, timepoint))
+            arr = np.frombuffer(arr.data, dtype=np.uint8)
+        elif imarisDataType == "eTypeUInt16":
             arr = np.array(iDataSet.GetDataVolumeAs1DArrayShorts(channel, timepoint),
                               dtype=np.uint16)
         elif imarisDataType == "eTypeFloat":
-            arr = np.array(iDataSet.GetDataVolumeFloats(channel, timepoint),
-                              dtype=np.float32)            
+            arr = np.array(iDataSet.GetDataVolumeAs1DArrayFloats(channel, timepoint),
+                              dtype=np.float32)
         else:
             raise Exception("Bad value for iDataSet::getType().")
 
         # Reshape
-        x = self._mImarisApplication.GetDataSet().GetSizeX()
-        y = self._mImarisApplication.GetDataSet().GetSizeY()
-        z = self._mImarisApplication.GetDataSet().GetSizeZ()
-        np.reshape(arr, (x, y, z))
+        sz = self.getSizes()
+        arr = np.reshape(arr, sz[0:3])
 
         # Return
         return arr
@@ -698,10 +696,10 @@ REMARKS:
 
 
     def getNumpyDatatype(self):
-        """Returns the datatype of the dataset as a python Numpy type 
+        """Returns the datatype of the dataset as a python Numpy type
 (e.g. one of np.uint8, np.uint16, np.float32, or None if the
 datatype is unknown to Imaris).
-        
+
         """
 
         if not self.isAlive():
@@ -719,7 +717,7 @@ datatype is unknown to Imaris).
         elif imarisDataType == "eTypeFloat":
             return np.float32
         elif imarisDataType == "eTypeUnknown":
-            return None                        
+            return None
         else:
             raise Exception("Bad value for iDataSet::getType().")
 
@@ -738,23 +736,23 @@ datatype is unknown to Imaris).
     def getSurpassCameraRotationMatrix(self):
         """Calculates the rotation matrix that corresponds to current view in
         the Surpass Scene (from the Camera Quaternion) for the axes with
-        "Origin Bottom Left". 
+        "Origin Bottom Left".
         @TODO Verify the correctness for the other axes orientations.
 
 SYNOPSIS:
 
 [R, isI] = conn.getSurpassCameraRotationMatrix()
- 
+
 ARGUMENTS:
- 
+
 None
- 
+
 OUTPUTS:
- 
+
 R:      (4 x 4) rotation matrix
 isI:    true if the rotation matrix is the Identity matrix, i.e. the
         camera is perpendicular to the dataset
-        
+
         """
         pass
 
@@ -990,21 +988,21 @@ OUTPUT
         """Maps an uint32 RGBA scalar to an 1-by-4, (0..1) vector.
 
         """
-        # @TODO Add checks (and make sure that rgbaScalar is 
+        # @TODO Add checks (and make sure that rgbaScalar is
         # a Numpy array
-        
+
         return np.frombuffer(rgbaScalar.data, dtype=np.uint8)
-    
+
     # @TODO Finish
     def mapRgbaVectorToScalar(self, rgbaVector):
         """Maps an 1-by-4, (0..1) RGBA vector to an uint32 scalar.
 
         """
-    
-        # @TODO Add checks (and make sure that rgbaScalar is 
+
+        # @TODO Add checks (and make sure that rgbaScalar is
         # a Numpy array
         rgba = np.frombuffer(rgbaVector.data, dtype=np.uint32)
-        return long(rgba[0]) 
+        return long(rgba[0])
 
     # @TODO
     def setDataVolume(self, stack, channel, timepoint):
@@ -1366,7 +1364,7 @@ typeValue:  one of:
             'Surfaces'
             'SurpassCamera'
             'Volume'
-        
+
         """
         # Possible type values
         possibleTypeValues = ["Cells", "ClippingPlane", "Dataset", "Frame", \

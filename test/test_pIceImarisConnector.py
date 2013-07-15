@@ -213,23 +213,22 @@ if __name__ == '__main__':
     # =========================================================================
     print('Get and check the datatype...')
     datatype = conn.getNumpyDatatype()
-    print datatype
     assert(datatype == np.uint8)
 
-    # # Get the data volume
-    # # =========================================================================
-    # print('Get the data volume...')
-    # stack = conn.getDataVolume(0, 0)
-    # 
-    # print('Check the data volume type...')
-    # assert(isa(stack, type) == 1)
-    # 
-    # # Check the sizes
-    # print('Check the data volume size...')
-    # assert(size(stack, 1) == DATASETSIZE(1) == 1)
-    # assert(size(stack, 2) == DATASETSIZE(2) == 1)
-    # assert(size(stack, 3) == DATASETSIZE(3) == 1)
-    # 
+    # Get the data volume
+    # =========================================================================
+    print('Get the data volume...')
+    stack = conn.getDataVolume(0, 0)
+
+    print('Check the data volume type...')
+    assert(stack.dtype == conn.getNumpyDatatype())
+     
+    # Check the sizes
+    print('Check the data volume size...')
+    assert(stack.shape[0] == DATASETSIZE[0])
+    assert(stack.shape[1] == DATASETSIZE[1])
+    assert(stack.shape[2] == DATASETSIZE[2])
+
     # # Get the data volume by explicitly passing an iDataSet object
     # # =========================================================================
     # print('Get the data volume by explicitly passing an iDataSet object...')
