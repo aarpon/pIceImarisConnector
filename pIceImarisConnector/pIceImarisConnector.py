@@ -272,35 +272,35 @@ returns one of the Imaris::IDataItem subclasses:
 
         # Cast
         if factory.IsLightSource(dataItem):
-            return factory.ToLightSource(dataItem);
+            return factory.ToLightSource(dataItem)
         elif factory.IsFrame(dataItem):
-            return factory.ToFrame(dataItem);
+            return factory.ToFrame(dataItem)
         elif factory.IsVolume(dataItem):
-            return factory.ToVolume(dataItem);
+            return factory.ToVolume(dataItem)
         elif factory.IsSpots(dataItem):
-            return factory.ToSpots(dataItem);
+            return factory.ToSpots(dataItem)
         elif factory.IsSurfaces(dataItem):
-            return factory.ToSurfaces(dataItem);
+            return factory.ToSurfaces(dataItem)
         elif factory.IsDataSet(dataItem):
-            return factory.ToDataSet(dataItem);
+            return factory.ToDataSet(dataItem)
         elif factory.IsSurpassCamera(dataItem):
-            return factory.ToSurpassCamera(dataItem);
+            return factory.ToSurpassCamera(dataItem)
         elif factory.IsFilaments(dataItem):
-            return factory.ToFilaments(dataItem);
+            return factory.ToFilaments(dataItem)
         elif factory.IsClippingPlane(dataItem):
-            return factory.ToClippingPlane(dataItem);
+            return factory.ToClippingPlane(dataItem)
         elif factory.IsApplication(dataItem):
-            return factory.ToApplication(dataItem);
+            return factory.ToApplication(dataItem)
         elif factory.IsMeasurementPoints(dataItem):
-            return factory.ToMeasurementPoints(dataItem);
+            return factory.ToMeasurementPoints(dataItem)
         elif factory.IsDataContainer(dataItem):
-            return factory.ToDataContainer(dataItem);
+            return factory.ToDataContainer(dataItem)
         elif factory.IsCells(dataItem):
-            return factory.ToCells(dataItem);
+            return factory.ToCells(dataItem)
         elif factory.IsFactory(dataItem):
-            return factory.ToFactory(dataItem);
+            return factory.ToFactory(dataItem)
         elif factory.IsImageProcessing(dataItem):
-            return factory.ToImageProcessing(dataItem);
+            return factory.ToImageProcessing(dataItem)
         else:
             raise ValueError('Invalid IDataItem object!')
 
@@ -548,14 +548,14 @@ The following holds:
 
 if conn.indexingStart == 0:
 
-    subA = conn.getDataSubVolume(x0, y0, z0, 0, 0, dX, dY, dZ);
-    A = conn.getDataVolume(0, 0);
+    subA = conn.getDataSubVolume(x0, y0, z0, 0, 0, dX, dY, dZ)
+    A = conn.getDataVolume(0, 0)
     A(x0 + 1 : x0 + dX, y0 + 1 : y0 + dY, z0 + 1 : z0 + dZ) === subA
 
 if conn.indexingStart == 1:
 
-    subA = conn.getDataSubVolume(x0, y0, z0, 1, 1, dX, dY, dZ);
-    A = conn.getDataVolume(1, 1);
+    subA = conn.getDataSubVolume(x0, y0, z0, 1, 1, dX, dY, dZ)
+    A = conn.getDataVolume(1, 1)
     A(x0 : x0 + dX - 1, y0 : y0 + dY - 1, z0 : z0 + dZ - 1) === subA
 
 OUTPUTS:
@@ -815,17 +815,17 @@ typeFilter: {True | False} (optional, default False) Specifies
         # Voxel size X
         vX = (self._mImarisApplication.GetDataSet().GetExtendMaxX() - \
               self._mImarisApplication.GetDataSet().GetExtendMinX()) / \
-              self._mImarisApplication.GetDataSet().GetSizeX();
+              self._mImarisApplication.GetDataSet().GetSizeX()
 
         # Voxel size Y
         vY = (self._mImarisApplication.GetDataSet().GetExtendMaxY() - \
               self._mImarisApplication.GetDataSet().GetExtendMinY()) / \
-              self._mImarisApplication.GetDataSet().GetSizeY();
+              self._mImarisApplication.GetDataSet().GetSizeY()
 
         # Voxel size Z
         vZ = (self._mImarisApplication.GetDataSet().GetExtendMaxZ() - \
               self._mImarisApplication.GetDataSet().GetExtendMinZ()) / \
-              self._mImarisApplication.GetDataSet().GetSizeZ();
+              self._mImarisApplication.GetDataSet().GetSizeZ()
 
         # Wrap the voxel sizes into a tuple
         return (vX, vY, vZ)
@@ -1032,10 +1032,10 @@ userControl :   (optional, default False) The optional parameter
 
         # Check the platform
         if not self._isSupportedPlatform():
-            raise Exception('pIceImarisConnector can only work on Windows and Mac OS X.');
+            raise Exception('pIceImarisConnector can only work on Windows and Mac OS X.')
 
         # Store the userControl
-        self._mUserControl = userControl;
+        self._mUserControl = userControl
 
         # If an Imaris instance is open, we close it -- no questions asked
         if self.isAlive() == True:
@@ -1054,13 +1054,13 @@ userControl :   (optional, default False) The optional parameter
                 subprocess.Popen([self._mImarisExePath, args], bufsize=-1)
             except OSError as o:
                 print(o)
-                return False;
+                return False
             except ValueError as v:
                 print(v)
-                return False;
-            except WindowsError as e:
-                print(e)
-                return False;
+                return False
+            except:
+                print "Unexpected error:", sys.exc_info()[0]
+                return False
 
             # Try getting the application over a certain time period in case it
             # takes to long for Imaris to be registered.
@@ -1078,7 +1078,6 @@ userControl :   (optional, default False) The optional parameter
                     vImaris = self._mImarisLib.GetApplication(self._mImarisObjectID)
                 except:
                     print("Exception when trying to get the Application from ImariServer")
-                    pass
 
                 if vImaris is not None:
                     break
@@ -1095,13 +1094,13 @@ userControl :   (optional, default False) The optional parameter
                 return False
 
             # We can store the application
-            self._mImarisApplication = vImaris;
+            self._mImarisApplication = vImaris
 
             # Return success
             return True
 
         except:
-            print("Error: " + str(sys.exc_info()[1]))
+            print("Error: " + str(sys.exc_info()[0]))
 
 
     # --------------------------------------------------------------------------
@@ -1294,7 +1293,7 @@ directory:  directory to be scanned. Most likely
                     children = self._getFilteredChildrenAtLevel(
                         self.autocast(child), recursive, typeFilter, children)
             else:
-                currentChild = self.autocast(child);
+                currentChild = self.autocast(child)
                 if self._isOfType(currentChild, typeFilter):
                     children.append(currentChild)
 
@@ -1318,19 +1317,18 @@ can be reused.
         """
 
         # The check will be different on Windows and on Mac OS X
-        if self._ispc:
+        if self._ispc():
             cmd = "tasklist /NH /FI \"IMAGENAME eq ImarisServerIce.exe\""
             result = subprocess.check_output(cmd)
             if "ImarisServerIce.exe" in result:
                 return True
 
         elif self._ismac():
-            result = subprocess.call(["ps", \
-                                     "aux | grep ImarisServerIce"])
+            result = subprocess.check_output(["ps", "aux"])
             if self._mImarisServerExePath in result:
                 return True
         else:
-            raise OSError('Unsupported platform.');
+            raise OSError('Unsupported platform.')
 
         return False
 
@@ -1399,9 +1397,9 @@ typeValue:  one of:
         elif typeValue == 'SurpassCamera':
             return factory.IsSurpassCamera(obj)
         elif typeValue == 'Volume':
-            return factory.IsVolume(obj);
+            return factory.IsVolume(obj)
         else:
-            raise ValueError('Bad value for ''typeValue''.');
+            raise ValueError('Bad value for ''typeValue''.')
 
 
     def _ispc(self):
@@ -1432,20 +1430,26 @@ to accept connections."""
         # before returning success. We set a 10s time out limit
         try:
             process = subprocess.Popen(self._mImarisServerExePath, bufsize=-1)
-        except WindowsError as e:
-            print(e)
-            return False;
+        except OSError as o:
+            print(o)
+            return False
+        except ValueError as v:
+            print(v)
+            return False
+        except:
+            print "Unexpected error:", sys.exc_info()[0]
+            return False
 
         if not process:
             return False
 
         # Now wait until ImarisIceServer is running (or we time out)
         t = time.time()
-        timeout = t + 10;
+        timeout = t + 10
         while t < timeout:
             if self._isImarisServerIceRunning() == True:
                 return True
             # Update the elapsed time
-            t = time.time();
+            t = time.time()
 
         return False
