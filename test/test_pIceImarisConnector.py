@@ -229,28 +229,28 @@ if __name__ == '__main__':
     assert(stack.shape[1] == DATASETSIZE[1])
     assert(stack.shape[2] == DATASETSIZE[2])
 
-    # # Get the data volume by explicitly passing an iDataSet object
-    # # =========================================================================
-    # print('Get the data volume by explicitly passing an iDataSet object...')
-    # stack = conn.getDataVolume(0, 0, conn.mImarisApplication.GetDataSet)
-    # 
-    # print('Check the data volume type...')
-    # assert(isa(stack, type) == 1)
-    # 
-    # # Check the sizes
-    # print('Check the data volume size...')
-    # assert(size(stack, 1) == DATASETSIZE(1) == 1)
-    # assert(size(stack, 2) == DATASETSIZE(2) == 1)
-    # assert(size(stack, 3) == DATASETSIZE(3) == 1)
-    # 
+    # Get the data volume by explicitly passing an iDataSet object
+    # =========================================================================
+    print('Get the data volume by explicitly passing an iDataSet object...')
+    stack = conn.getDataVolume(0, 0, conn.mImarisApplication.GetDataSet())
+ 
+    print('Check the data volume type...')
+    assert(stack.dtype == conn.getNumpyDatatype())
+ 
+    # Check the sizes
+    print('Check the data volume size...')
+    assert(stack.shape[0] == DATASETSIZE[0])
+    assert(stack.shape[1] == DATASETSIZE[1])
+    assert(stack.shape[2] == DATASETSIZE[2])
+ 
     # # Check the getDataVolumeRM() method
     # # =========================================================================
     # print('Check getting the volume in row-major order...')
     # stackRM = conn.getDataVolumeRM(0, 0)
     # assert(all(all(stack(:, :, 27) == (stackRM(:, :, 27))')))
     # 
-    # # Get the rotation matrix from the camera angle
-    # # =========================================================================
+    # Get the rotation matrix from the camera angle
+    # =========================================================================
     # print('Get the rotation matrix from the camera angle...')
     # R_D = [
     #     0.8471    0.2345   -0.4769         0
@@ -261,59 +261,62 @@ if __name__ == '__main__':
     # R = conn.getSurpassCameraRotationMatrix()
     # assert(all(all(abs(R - R_D) < 1e-4)) == 1)
     # 
-    # # Check getting/setting colors and transparency
-    # # =========================================================================
-    # print('Check getting/setting colors and transparency...')
-    # children = conn.getAllSurpassChildren(1, 'Spots')
-    # spots = children{1}
-    # 
-    # # We prepare some color/transparency commbinations to circle through (to
-    # # check the int32/uint32 type casting we are forced to apply)
-    # clr = [...
-    #     1 0 0 0.00    # Red, transparency = 0
-    #     0 1 0 0.00    # Green, transparency = 0
-    #     0 0 1 0.00    # Blue,  transparency = 0
-    #     1 1 0 0.00    # Yellow, transparency = 0
-    #     1 0 1 0.00    # Purple, transparency = 0
-    #     1 0 1 0.25    # Purple, transparency = 0.25
-    #     1 0 1 0.50    # Purple, transparency = 0.50
-    #     1 0 1 0.75    # Purple, transparency = 0.75
-    #     1 0 1 1.00]  # Purple, transparency = 1.00
-    # 
-    # for i = 1 : size(clr, 1)
-    #     
-    #     # Set the RGBA color
-    #     spots.SetColorRGBA(conn.mapRgbaVectorToScalar(clr(i, :)))
-    #     
-    #     # Get the RGBA color
-    #     current = conn.mapRgbaScalarToVector(spots.GetColorRGBA())
-    #     
-    #     # Compare (rounding erros allowed)
-    #     assert(abs(all(clr(i, :) - current)) < 1e-2)
-    # 
-    # end
-    #     
-    # # Close Imaris
-    # # =========================================================================
-    # print('Close Imaris...')
-    # assert(conn.closeImaris(1) == 1)
-    # 
-    # # Create an ImarisConnector object with starting index 1
-    # # =========================================================================
-    # clear 'conn'
-    # print('Create an IceImarisConnector object with starting index 1...')
-    # conn = IceImarisConnector([], 1)
-    # 
-    # # Start Imaris
-    # # =========================================================================
-    # print('Start Imaris...')
-    # assert(conn.startImaris == 1)
-    # 
-    # # Check the starting index
-    # # =========================================================================
-    # print('Check starting index...')
-    # assert(conn.indexingStart() == 1)
-    # 
+    # Check getting/setting colors and transparency
+    # =========================================================================
+    print('Check getting/setting colors and transparency...')
+    children = conn.getAllSurpassChildren(True, 'Spots')
+    spots = children[0]
+
+    # We prepare some color/transparency combinations to circle through
+    clr = [ \
+        [ 1, 0, 0, 0.00 ],    # Red, transparency = 0
+        [ 0, 1, 0, 0.00 ],    # Green, transparency = 0
+        [ 0, 0, 1, 0.00 ],    # Blue,  transparency = 0
+        [ 1, 1, 0, 0.00 ],    # Yellow, transparency = 0
+        [ 1, 0, 1, 0.00 ],    # Purple, transparency = 0
+        [ 1, 0, 1, 0.25 ],    # Purple, transparency = 0.25
+        [ 1, 0, 1, 0.50 ],    # Purple, transparency = 0.50
+        [ 1, 0, 1, 0.75 ],    # Purple, transparency = 0.75
+        [ 1, 0, 1, 1.00 ] ]   # Purple, transparency = 1.00
+     
+    for c in clr:
+        
+        # Set the RGBA color
+        spots.SetColorRGBA(conn.mapRgbaVectorToScalar(c))
+        
+        # Get the RGBA color
+        current = conn.mapRgbaScalarToVector(spots.GetColorRGBA())
+
+        # Report
+        print(c)
+        print(current)
+        print("")
+        
+        # Compare (rounding errors allowed)
+        assert(all([abs(x - y) < 1e-2 for x, y in zip(c, current)]))
+
+    # Close Imaris
+    # =========================================================================
+    print('Close Imaris...')
+    assert(conn.closeImaris(1) == 1)
+     
+    # Create an ImarisConnector object with starting index 1
+    # =========================================================================
+    del(conn)
+    
+    print('Create an IceImarisConnector object with starting index 1...')
+    conn = pIceImarisConnector(indexingStart=1)
+     
+    # Start Imaris
+    # =========================================================================
+    print('Start Imaris...')
+    assert(conn.startImaris() == 1)
+     
+    # Check the starting index
+    # =========================================================================
+    print('Check starting index...')
+    assert(conn.indexingStart == 1)
+     
     # # Open a file
     # # =========================================================================
     # print('Load file...')

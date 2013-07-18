@@ -402,13 +402,6 @@ newSpots    : the generated Spots object.
             raise ValueError("radii must contain " +
                              str(nSpots) + "elements.")
 
-        # Check the color vector
-        color = np.array(color, dtype=np.float32)
-        if color.ndim != 1 or color.shape[0] != 4 or \
-        np.any(np.logical_or(color < 0, color > 1)):
-            raise ValueError("color must be a vector with 4 elements in " +
-                             "the 0 .. 1 range.")
-
         # If the container was not specified, add to the Surpass Scene
         if container is None:
             container = self._mImarisApplication.GetSurpassScene()
@@ -602,7 +595,7 @@ REMARKS:
             iDataSet = self.mImarisApplication.GetDataSet()
         else:
             # Is the passed argument a valid iDataSet?
-            if not self.mImarisApplication.GetFactory.IsDataset(iDataSet):
+            if not self.mImarisApplication.GetFactory().IsDataSet(iDataSet):
                 raise Exception("Invalid IDataSet object.")
 
         if iDataSet.GetSizeX() == 0:
@@ -988,10 +981,20 @@ OUTPUT
         """Maps an uint32 RGBA scalar to an 1-by-4, (0..1) vector.
 
         """
-        # @TODO Add checks (and make sure that rgbaScalar is
-        # a Numpy array
+        # rgbaScalar is an unsiged integer 32 bit, but we support
+        # also the value already wrapped into a numpy scalar
+        if isinstance(rgbaScalar, int):
+            rgbaScalar = np.array(rgbaScalar, dtype=np.uint32)
+        elif isinstance(rgbaScalar, np.ndarray):
+            pass
+        else:
+            raise TypeError('Expected integer of Numpy scalar (uint32).')
 
-        return np.frombuffer(rgbaScalar.data, dtype=np.uint8)
+        # Extract the uint32 scalar into a vector of 4 uint8s
+        rgbaUint8Vector = np.frombuffer(rgbaScalar.data, dtype=np.uint8)
+        
+        # And now tranform it into a vector of floats in the 0 .. 1 range
+        return np.asarray(rgbaUint8Vector / 255, dtype=np.float32) 
 
     # @TODO Finish
     def mapRgbaVectorToScalar(self, rgbaVector):
@@ -999,8 +1002,25 @@ OUTPUT
 
         """
 
-        # @TODO Add checks (and make sure that rgbaScalar is
-        # a Numpy array
+        # Make sure that rgbaScalar is a list or Numpy array with
+        # four values in the 0 .. 1 range
+        if isinstance(rgbaVector, list):
+            rgbaVector = np.array(rgbaVector, dtype=np.float32)
+        elif isinstance(rgbaVector, np.ndarray):
+            pass
+        else:
+            raise TypeError('Expected list or Numpy array.')
+
+        # Check rgbaVector
+        if rgbaVector.ndim != 1 or rgbaVector.shape[0] != 4 or \
+        np.any(np.logical_or(rgbaVector < 0, rgbaVector > 1)):
+            raise ValueError("rgbaVector must be a vector with 4 elements in " +
+                             "the 0 .. 1 range.")
+
+        # Bring it into the 0..255 range
+        rgbaVector = np.asarray(255 * rgbaVector, dtype=np.uint8)
+        
+        # Wrap it into an uint32
         rgba = np.frombuffer(rgbaVector.data, dtype=np.uint32)
         return long(rgba[0])
 
