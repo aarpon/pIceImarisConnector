@@ -978,14 +978,19 @@ OUTPUT
 
     # @TODO Finish
     def mapRgbaScalarToVector(self, rgbaScalar):
-        """Maps an uint32 RGBA scalar to an 1-by-4, (0..1) vector.
+        """Maps an int32 RGBA scalar to an 1-by-4, (0..1) vector.
 
+        Imaris returns an uint32 scalar as int32. We need to typecast
+        before we can operate on it.
+        
         """
-        # rgbaScalar is an unsiged integer 32 bit, but we support
-        # also the value already wrapped into a numpy scalar
+        # rgbaScalar is a signed integer 32 bit, but we support
+        # also the value already wrapped as an uint32 into a numpy
+        # "scalar"
         if isinstance(rgbaScalar, int):
             rgbaScalar = np.array(rgbaScalar, dtype=np.uint32)
-        elif isinstance(rgbaScalar, np.ndarray):
+        elif isinstance(rgbaScalar, np.ndarray) and \
+            rgbaScalar.dtype == np.uint32:
             pass
         else:
             raise TypeError('Expected integer of Numpy scalar (uint32).')
@@ -994,11 +999,11 @@ OUTPUT
         rgbaUint8Vector = np.frombuffer(rgbaScalar.data, dtype=np.uint8)
         
         # And now tranform it into a vector of floats in the 0 .. 1 range
-        return np.asarray(rgbaUint8Vector / 255, dtype=np.float32) 
+        return np.asarray(rgbaUint8Vector, dtype=np.float32) / 255 
 
     # @TODO Finish
     def mapRgbaVectorToScalar(self, rgbaVector):
-        """Maps an 1-by-4, (0..1) RGBA vector to an uint32 scalar.
+        """Maps an 1-by-4, (0..1) RGBA vector to an int32 scalar.
 
         """
 
@@ -1020,9 +1025,9 @@ OUTPUT
         # Bring it into the 0..255 range
         rgbaVector = np.asarray(255 * rgbaVector, dtype=np.uint8)
         
-        # Wrap it into an uint32
-        rgba = np.frombuffer(rgbaVector.data, dtype=np.uint32)
-        return long(rgba[0])
+        # Wrap it into an int32
+        rgba = np.frombuffer(rgbaVector.data, dtype=np.int32)
+        return int(rgba)
 
     # @TODO
     def setDataVolume(self, stack, channel, timepoint):
