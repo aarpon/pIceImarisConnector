@@ -429,9 +429,106 @@ newSpots    : the generated Spots object.
         return newSpots
 
 
-    def createDataset(self):
-        """Creates an Imaris dataset and replaces current one."""
-        pass
+    def createDataset(self, datatype, sizeX, sizeY, sizeZ, sizeC, sizeT, \
+                      voxelSizeX=1, voxelSizeY=1, voxelSizeZ=1, deltaTime=1):
+        """Creates an Imaris dataset and replaces current one.
+
+SYNOPSIS
+
+(1) createDataset(datatype, sizeX, sizeY, sizeZ, sizeC, sizeT)
+(2) createDataset(datatype, sizeX, sizeY, sizeZ, sizeC, sizeT, ...
+                  voxelSizeX, voxelsSizeY, voxelSizeZ, deltaTime)
+
+ARGUMENTS
+
+datatype  : one of 'uint8', 'uint16', 'single', Imaris.tType.eTypeUInt8,
+            Imaris.tType.eTypeUInt16, Imaris.tType.eTypeFloat
+sizeX     : dataset width
+sizeY     : dataset height
+sizeZ     : number of planes
+sizeC     : number of channels
+sizeT     : number of timepoints
+voxelSizeX: (optional, default = 1) voxel size in X direction
+voxelSizeY: (optional, default = 1) voxel size in Y direction
+voxelSizeZ: (optional, default = 1) voxel size in Z direction
+deltaTime : (optional, default = 1) time difference between consecutive
+            time points
+
+OUTPUTS
+
+None
+
+EXAMPLE
+
+% Create a 2-by-3-by-2 stack
+data(:, :, 1) = [ 11 12 13; 14 15 16 ];
+data(:, :, 2) = [ 17 18 19; 20 21 22];
+data = uint8(data);
+
+% Create a dataset with sizeX = 3, sizeY = 2 and sizeZ = 2
+conn.createDataset('uint8', 3, 2, 2, 1, 1);
+
+% Copy data into the Imaris dataset
+conn.setDataVolumeRM(data, 0, 0);
+
+        """
+
+        # Is Imaris running?
+        if not self.isAlive():
+            return
+
+        # Get the Factory
+        factory = self._mImarisApplication.GetFactory()
+
+        # Get the ImarisType object
+        if self._mImarisApplication.GetDataSet() is not None:
+            ImarisTType = self._mImarisApplication.GetDataSet().GetType()
+        else:
+            ImarisTType = factory.CreateDataSet().GetType() 
+
+        # Data type
+        if datatype == np.uint8 or \
+        datatype == 'uint8' or \
+        datatype == ImarisTType.eTypeUInt8 or \
+        datatype == 'eTypeUInt8':
+            
+            imarisDataType = ImarisTType.eTypeUInt8
+            
+        elif datatype == np.uint16 or \
+        datatype == 'uint16' or \
+        datatype == ImarisTType.eTypeUInt16 or \
+        datatype == 'eTypeUInt16':
+            
+            imarisDataType = ImarisTType.eTypeUInt16
+            
+        elif datatype == np.float32 or \
+        datatype == 'float' or \
+        datatype == ImarisTType.eTypeFloat or \
+        datatype == 'eTypeFloat':
+        
+            imarisDataType = ImarisTType.eTypeFloat
+            
+        else:
+            
+            raise ValueError("Unknown datatype " + datatype )
+        
+        # Create the dataset
+        imarisDataset = factory.CreateDataSet()
+        imarisDataset.Create(imarisDataType, sizeX, sizeY, sizeZ, sizeC, sizeT)
+
+        # Apply the spatial calibration
+        imarisDataset.SetExtendMinX(0)
+        imarisDataset.SetExtendMinY(0)
+        imarisDataset.SetExtendMinZ(0)
+        imarisDataset.SetExtendMaxX(sizeX * voxelSizeX)
+        imarisDataset.SetExtendMaxY(sizeY * voxelSizeY)
+        imarisDataset.SetExtendMaxZ(sizeZ * voxelSizeZ)
+        
+        # Apply the temporal calibration
+        imarisDataset.SetTimePointsDelta(deltaTime)
+
+        # Set the dataset in Imaris
+        self._mImarisApplication.SetDataSet(imarisDataset)
 
 
     def display(self):
@@ -1023,18 +1120,74 @@ OUTPUT
                              "the 0 .. 1 range.")
 
         # Bring it into the 0..255 range
-        rgbaVector = np.asarray(255 * rgbaVector, dtype=np.uint8)
+        rgbaVector = np.asarray(np.round(255 * rgbaVector), dtype=np.uint8)
         
         # Wrap it into an int32
         rgba = np.frombuffer(rgbaVector.data, dtype=np.int32)
         return int(rgba)
 
-    # @TODO
+
     def setDataVolume(self, stack, channel, timepoint):
         """Sets the data volume to Imaris.
 
+SYNOPSIS:
+
+conn.setDataVolume(stack, channel, timepoint)
+
+ARGUMENTS:
+
+stack    : 3D array of type np.uint8, np.uint16 or np.float32
+channel  : channel number (0/1-based depending on indexing start)
+timepoint: timepoint number (0/1-based depending on indexing start)
+
+OUTPUTS:
+
+None
         """
-        pass
+
+        if not self.isAlive():
+            return None
+
+        if channel < 1 and self._mIndexingStart == 1:
+            raise ValueError("channel cannot be < 1 if indexingStart is 1.")
+        
+        if timepoint < 1 and self._mIndexingStart == 1:
+            raise ValueError("timepoint cannot be < 1 if indexingStart is 1.")
+
+        if not self.isAlive():
+            return
+
+        # Get the dataset
+        iDataSet = self._mImarisApplication.GetDataSet()
+        
+        if iDataSet is None:
+            
+            # Create and store a new dataset
+            sz = stack.shape
+            if len(sz) == 2:
+                sz = (sz[0], sz[1], 1)
+            iDataSet = self.createDataset(stack.dtype, sz[0], sz[1], sz[2], 1, 1)
+                
+        #  Convert channel and timepoint to 0-based indexing
+        channel = channel - self._mIndexingStart
+        timepoint = timepoint - self._mIndexingStart
+
+        # Check that the requested channel and timepoint exist
+        if channel > iDataSet.GetSizeC() - 1:
+            raise Exception("The requested channel index is out of bounds!")
+        if timepoint > iDataSet.GetSizeT() - 1:
+            raise Exception("The requested time index is out of bounds!")
+
+        # Get the dataset class
+        imarisDataType = str(iDataSet.GetType())
+        if imarisDataType == "eTypeUInt8":
+            iDataSet.SetDataVolumeAs1DArrayBytes(stack.ravel(), channel, timepoint)
+        elif imarisDataType == "eTypeUInt16":
+            iDataSet.SetDataVolumeAs1DArrayShorts(stack.ravel(), channel, timepoint)
+        elif imarisDataType == "eTypeFloat":
+            iDataSet.SetDataVolumeAs1DArrayFloats(stack.ravel(), channel, timepoint)
+        else:
+            raise Exception("Bad value for iDataSet::getType().")
 
 
     def startImaris(self, userControl=False):

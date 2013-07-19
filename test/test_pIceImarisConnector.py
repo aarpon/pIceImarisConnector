@@ -287,11 +287,6 @@ if __name__ == '__main__':
         # Get the RGBA color
         current = conn.mapRgbaScalarToVector(spots.GetColorRGBA())
 
-        # Report
-        print(c)
-        print(current)
-        print("")
-        
         # Compare (rounding errors allowed)
         assert(all([abs(x - y) < 1e-2 for x, y in zip(c, current)]))
 
@@ -303,7 +298,7 @@ if __name__ == '__main__':
     # Create an ImarisConnector object with starting index 1
     # =========================================================================
     del(conn)
-    
+
     print('Create an IceImarisConnector object with starting index 1...')
     conn = pIceImarisConnector(indexingStart=1)
      
@@ -311,81 +306,82 @@ if __name__ == '__main__':
     # =========================================================================
     print('Start Imaris...')
     assert(conn.startImaris() == 1)
-     
+
     # Check the starting index
     # =========================================================================
     print('Check starting index...')
     assert(conn.indexingStart == 1)
-     
-    # # Open a file
-    # # =========================================================================
-    # print('Load file...')
-    # filename = fullfile(fileparts(which(mfilename)), 'PyramidalCell.ims')
-    # conn.mImarisApplication.FileOpen(filename, '')
-    # 
-    # # Get and compare the data volume
-    # # =========================================================================
-    # print('Get and compare the data volume...')
-    # stackIndx1 = conn.getDataVolume(1, 1)
-    # 
-    # cmp = stack == stackIndx1
-    # assert(all(cmp(:)))
-    # 
-    # # Close Imaris
-    # # =========================================================================
-    # print('Close Imaris...')
-    # assert(conn.closeImaris == 1)
-    # 
-    # # Create an ImarisConnector object with starting index 0
-    # # =========================================================================
-    # clear 'conn'
-    # print('Create an IceImarisConnector object with starting index 0...')
-    # conn = IceImarisConnector([], 0)
-    # 
-    # # Start Imaris
-    # # =========================================================================
-    # print('Start Imaris...')
-    # assert(conn.startImaris == 1)
-    # 
-    # # Create a dataset
-    # # =========================================================================
-    # print('Create a dataset')
-    # conn.createDataset('uint8', 100, 200, 50, 3, 10, 0.20, 0.25, 0.5, 0.1)
-    # 
-    # # Check sizes
-    # # =========================================================================
-    # print('Check sizes...')
-    # sizes = conn.getSizes()
-    # assert(sizes(1) == 100)
-    # assert(sizes(2) == 200)
-    # assert(sizes(3) == 50)
-    # assert(sizes(4) == 3)
-    # assert(sizes(5) == 10)
-    # 
-    # # Check voxel sizes
-    # # =========================================================================
-    # print('Check voxel sizes...')
-    # voxelSizes = conn.getVoxelSizes()
-    # assert(voxelSizes(1) == 0.2)
-    # assert(voxelSizes(2) == 0.25)
-    # assert(voxelSizes(3) == 0.5)
-    # 
-    # # Check the time delta
-    # # =========================================================================
-    # print('Check time interval...')
-    # assert(conn.mImarisApplication.GetDataSet().GetTimePointsDelta() == 0.1)
-    # 
-    # # Check transfering volume data
-    # # =========================================================================
-    # print('Check two-way data volume transfer...')
-    # data(:, :, 1) = [ 1 2 3 4 5 6 ]
-    # data(:, :, 2) = [ 7 8 9 10 11 12]
-    # data = uint8(data)
-    # conn.createDataset('uint8', 3, 2, 2, 1, 1)
-    # conn.setDataVolumeRM(data, 0, 0)
-    # dataOut = conn.getDataVolumeRM(0, 0)
-    # r = data == dataOut
-    # assert(all(r(:)))
+
+    # Open a file
+    # =========================================================================
+    print('Load file...')
+    conn.mImarisApplication.FileOpen(filename, '')
+
+    # Get and compare the data volume
+    # =========================================================================
+    print('Get and compare the data volume...')
+    stackIndx1 = conn.getDataVolume(1, 1)
+    assert(np.array_equal(stack, stackIndx1))
+
+    # Close Imaris
+    # =========================================================================
+    print('Close Imaris...')
+    assert(conn.closeImaris() == 1)
+    del(conn)
+ 
+    # Create an ImarisConnector object with starting index 0
+    # =========================================================================
+    print('Create an IceImarisConnector object with starting index 0...')
+    conn = pIceImarisConnector()
+    assert(conn.indexingStart==0)
+
+    # Start Imaris
+    # =========================================================================
+    print('Start Imaris...')
+    assert(conn.startImaris() == 1)
+ 
+    # Create a dataset
+    # =========================================================================
+    print('Create a dataset')
+    conn.createDataset('uint8', 100, 200, 50, 3, 10, 0.20, 0.25, 0.5, 0.1)
+ 
+    # Check sizes
+    # =========================================================================
+    print('Check sizes...')
+    sizes = conn.getSizes()
+    assert(sizes[0] == 100)
+    assert(sizes[1] == 200)
+    assert(sizes[2] == 50)
+    assert(sizes[3] == 3)
+    assert(sizes[4] == 10)
+
+    # Check voxel sizes
+    # =========================================================================
+    print('Check voxel sizes...')
+    voxelSizes = conn.getVoxelSizes()
+    assert(voxelSizes[0] == 0.2)
+    assert(voxelSizes[1] == 0.25)
+    assert(voxelSizes[2] == 0.5)
+ 
+    # Check the time delta
+    # =========================================================================
+    print('Check time interval...')
+    assert(conn.mImarisApplication.GetDataSet().GetTimePointsDelta() == 0.1)
+ 
+    # Check transferring volume data
+    # =========================================================================
+    print('Check two-way data volume transfer...')
+    data = np.empty((2, 255, 255), dtype=np.uint8)
+    x = np.linspace(1, 255, 255)
+    y = np.linspace(1, 255, 255)
+    xv, yv = np.meshgrid(x, y)
+    data[0, :, :] = x
+    data[1, :, :] = y
+    data = data[:, :, 1:255] # Make it not square in xy
+    conn.createDataset('uint8', 254, 255, 2, 1, 1)
+    conn.setDataVolume(data, 0, 0)
+    dataOut = conn.getDataVolume(0, 0)
+    assert(np.array_equal(data, dataOut))
  
     # Close Imaris
     # =========================================================================
