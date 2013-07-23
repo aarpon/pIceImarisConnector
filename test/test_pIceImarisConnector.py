@@ -340,9 +340,14 @@ if __name__ == '__main__':
     print('Start Imaris...')
     assert(conn.startImaris() == 1)
  
+    # Send a data volume that will force creation of a compatible dataset
+    # =========================================================================
+    print('Send volume (force dataset creation)...')
+    conn.setDataVolume(np.array([[1000, 1001], [1002, 1003]], np.uint16), 0, 0)
+
     # Create a dataset
     # =========================================================================
-    print('Create a dataset')
+    print('Create a dataset (replace existing one)...')
     conn.createDataset('uint8', 100, 200, 50, 3, 10, 0.20, 0.25, 0.5, 0.1)
  
     # Check sizes

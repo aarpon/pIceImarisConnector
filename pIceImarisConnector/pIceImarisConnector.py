@@ -488,23 +488,20 @@ conn.setDataVolumeRM(data, 0, 0);
 
         # Data type
         if datatype == np.uint8 or \
-        datatype == 'uint8' or \
-        datatype == ImarisTType.eTypeUInt8 or \
-        datatype == 'eTypeUInt8':
+        str(datatype) == 'uint8' or \
+        str(datatype) == 'eTypeUInt8':
             
             imarisDataType = ImarisTType.eTypeUInt8
             
         elif datatype == np.uint16 or \
-        datatype == 'uint16' or \
-        datatype == ImarisTType.eTypeUInt16 or \
-        datatype == 'eTypeUInt16':
+        str(datatype) == 'uint16' or \
+        str(datatype) == 'eTypeUInt16':
             
             imarisDataType = ImarisTType.eTypeUInt16
             
         elif datatype == np.float32 or \
-        datatype == 'float' or \
-        datatype == ImarisTType.eTypeFloat or \
-        datatype == 'eTypeFloat':
+        str(datatype) == 'float' or \
+        str(datatype) == 'eTypeFloat':
         
             imarisDataType = ImarisTType.eTypeFloat
             
@@ -513,22 +510,25 @@ conn.setDataVolumeRM(data, 0, 0);
             raise ValueError("Unknown datatype " + datatype )
         
         # Create the dataset
-        imarisDataset = factory.CreateDataSet()
-        imarisDataset.Create(imarisDataType, sizeX, sizeY, sizeZ, sizeC, sizeT)
+        iDataSet = factory.CreateDataSet()
+        iDataSet.Create(imarisDataType, sizeX, sizeY, sizeZ, sizeC, sizeT)
 
         # Apply the spatial calibration
-        imarisDataset.SetExtendMinX(0)
-        imarisDataset.SetExtendMinY(0)
-        imarisDataset.SetExtendMinZ(0)
-        imarisDataset.SetExtendMaxX(sizeX * voxelSizeX)
-        imarisDataset.SetExtendMaxY(sizeY * voxelSizeY)
-        imarisDataset.SetExtendMaxZ(sizeZ * voxelSizeZ)
+        iDataSet.SetExtendMinX(0)
+        iDataSet.SetExtendMinY(0)
+        iDataSet.SetExtendMinZ(0)
+        iDataSet.SetExtendMaxX(sizeX * voxelSizeX)
+        iDataSet.SetExtendMaxY(sizeY * voxelSizeY)
+        iDataSet.SetExtendMaxZ(sizeZ * voxelSizeZ)
         
         # Apply the temporal calibration
-        imarisDataset.SetTimePointsDelta(deltaTime)
+        iDataSet.SetTimePointsDelta(deltaTime)
 
         # Set the dataset in Imaris
-        self._mImarisApplication.SetDataSet(imarisDataset)
+        self._mImarisApplication.SetDataSet(iDataSet)
+        
+        # Return the created dataset
+        return iDataSet
 
 
     def display(self):
@@ -809,7 +809,7 @@ datatype is unknown to Imaris).
         elif imarisDataType == "eTypeUnknown":
             return None
         else:
-            raise Exception("Bad value for iDataSet::getType().")
+            raise Exception("Bad value for iDataSet::GetType().")
 
 
     def getSizes(self):
@@ -1157,6 +1157,10 @@ None
         if not self.isAlive():
             return
 
+        # Check that we have a numpy array
+        if not isinstance(stack, np.ndarray):
+            raise TypeError("Expected numpy array.")
+
         # Get the dataset
         iDataSet = self._mImarisApplication.GetDataSet()
         
@@ -1178,13 +1182,19 @@ None
         if timepoint > iDataSet.GetSizeT() - 1:
             raise Exception("The requested time index is out of bounds!")
 
-        # Get the dataset class
+        # Get the dataset class (we enforce datatype compatibility)
         imarisDataType = str(iDataSet.GetType())
         if imarisDataType == "eTypeUInt8":
+            if stack.dtype != np.uint8:
+                raise TypeError("Incompatible datatype (expected numpy.uint8.")
             iDataSet.SetDataVolumeAs1DArrayBytes(stack.ravel(), channel, timepoint)
         elif imarisDataType == "eTypeUInt16":
+            if stack.dtype != np.uint16:
+                raise TypeError("Incompatible datatype (expected numpy.uint16.")
             iDataSet.SetDataVolumeAs1DArrayShorts(stack.ravel(), channel, timepoint)
         elif imarisDataType == "eTypeFloat":
+            if stack.dtype != np.float32:
+                raise TypeError("Incompatible datatype (expected numpy.float32.")
             iDataSet.SetDataVolumeAs1DArrayFloats(stack.ravel(), channel, timepoint)
         else:
             raise Exception("Bad value for iDataSet::getType().")
