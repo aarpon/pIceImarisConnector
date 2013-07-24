@@ -726,7 +726,7 @@ REMARKS:
 
         # Reshape
         sz = self.getSizes()
-        arr = np.reshape(arr, sz[0:3])
+        arr = np.reshape(arr, (sz[2], sz[1], sz[0]))
 
         # Return
         return arr

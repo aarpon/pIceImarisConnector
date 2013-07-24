@@ -225,9 +225,12 @@ if __name__ == '__main__':
      
     # Check the sizes
     print('Check the data volume size...')
-    assert(stack.shape[0] == DATASETSIZE[0])
-    assert(stack.shape[1] == DATASETSIZE[1])
-    assert(stack.shape[2] == DATASETSIZE[2])
+    x = stack.shape[2]
+    y = stack.shape[1]
+    z = stack.shape[0]
+    assert(x == DATASETSIZE[0])
+    assert(y == DATASETSIZE[1])
+    assert(z == DATASETSIZE[2])
 
     # Get the data volume by explicitly passing an iDataSet object
     # =========================================================================
@@ -239,9 +242,12 @@ if __name__ == '__main__':
  
     # Check the sizes
     print('Check the data volume size...')
-    assert(stack.shape[0] == DATASETSIZE[0])
-    assert(stack.shape[1] == DATASETSIZE[1])
-    assert(stack.shape[2] == DATASETSIZE[2])
+    x = stack.shape[2]
+    y = stack.shape[1]
+    z = stack.shape[0]   
+    assert(x == DATASETSIZE[0])
+    assert(y == DATASETSIZE[1])
+    assert(z == DATASETSIZE[2])
  
     # # Check the getDataVolumeRM() method
     # # =========================================================================
@@ -343,7 +349,9 @@ if __name__ == '__main__':
     # Send a data volume that will force creation of a compatible dataset
     # =========================================================================
     print('Send volume (force dataset creation)...')
-    conn.setDataVolume(np.array([[1000, 1001], [1002, 1003]], np.uint16), 0, 0)
+    stack = np.array([[[1, 2, 3], [4, 5, 6]],[[7, 8, 9], \
+            [10, 11, 12]],[[13, 14, 15], [16, 17, 18]]], np.uint16)
+    conn.setDataVolume(stack, 0, 0)
 
     # Create a dataset
     # =========================================================================
