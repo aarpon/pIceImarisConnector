@@ -248,31 +248,16 @@ if __name__ == '__main__':
     assert(y == DATASETSIZE[1])
     assert(z == DATASETSIZE[2])
  
-    # % Check the getDataSubVolume{RM}() methods
-    # % =========================================================================
-    # disp('Check that subvolumes in column- and row-major order are consistent...');
-    # stackRM = conn.getDataVolumeRM(0, 0);
-    # assert(all(all(stack(:, :, 27) == (stackRM(:, :, 27))')));
-    # 
-    # % Check that subvolumes in column- and row-major order are consistent...
-    # subStack = conn.getDataSubVolume(76, 111, 37, 0, 0, 10, 10, 2);
-    # subStackRM = conn.getDataSubVolumeRM(76, 111, 37, 0, 0, 10, 10, 2);
-    # assert(all(all(subStack(:, :, 1) == (subStackRM(:, :, 1))')));
-    # assert(all(all(subStack(:, :, 2) == (subStackRM(:, :, 2))')));
-    # 
-    # % Check the getDataSubVolume{RM}() vs. the getDataVolume{RM} methods
-    # % =========================================================================
-    # disp('Check that subvolumes are extracted correctly in row- and column-order...');
-    # 
-    # % Check that subvolumes in column- and row-major order are consistent...
-    # % Since indexingStart is 0 we must correct the indexing in stack
-    # % accordingly (i.e. add 1 to x0, y0 and z0). Moreover, for the RM
-    # % (sub)stacks, we have to swap the coordinates.
-    # assert(all(all(subStack(:, :, 1) == (stack(77 : 86, 112 : 121, 38)))));
-    # assert(all(all(subStack(:, :, 2) == (stack(77 : 86, 112 : 121, 39)))));
-    # assert(all(all(subStackRM(:, :, 1) == (stackRM(112 : 121, 77 : 86, 38)))));
-    # assert(all(all(subStackRM(:, :, 2) == (stackRM(112 : 121, 77 : 86, 39)))));
-
+    # Check the getDataSubVolume() vs. the getDataVolume methods
+    # =========================================================================
+    print('Check that subvolumes are extracted correctly...');
+    
+    # Remember that with Numpy, to get the values between x0 and x, you must
+    # use this notation: x0 : x + 1
+    subVolume = conn.getDataSubVolume(112, 77, 38, 0, 0, 10, 10, 2)
+    subStack = stack[38 : 40, 77 : 87, 112 : 122]
+    assert(np.array_equal(subStack, subVolume))
+ 
     # Get the rotation matrix from the camera angle
     # =========================================================================
     # print('Get the rotation matrix from the camera angle...')

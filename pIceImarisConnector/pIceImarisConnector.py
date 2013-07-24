@@ -340,7 +340,6 @@ quiet : (optional, default False) If True, Imaris won't pop-up a save
             return False
 
 
-    # @TODO
     def createAndSetSpots(self, coords, timeIndices, radii, name,
                           color, container=None):
         """Creates Spots and adds them to the Surpass Scene.
@@ -609,7 +608,9 @@ typeFilter: (optional) Filters the children by type. Only the surpass
         return children
 
 
-    # @TODO
+    # @TODO: fix documentation. Remember that indexing in Numpy is different.
+    # When using the : operator, to get values x0 : x (as in MATLAB), you must
+    # specify x0 : x + 1.
     def getDataSubVolume(self, x0, y0, z0, channel,
         timepoint, dX, dY, dZ, iDataSet=None):
         """Returns a data subvolume from Imaris.
@@ -656,7 +657,59 @@ REMARKS:
 
 This function gets the volume as a 1D array and reshapes it in place.
         """
-        pass
+
+        if not self.isAlive():
+            return None
+
+        if iDataSet is None:
+            iDataSet = self.mImarisApplication.GetDataSet()
+        else:
+            # Is the passed argument a valid iDataSet?
+            if not self.mImarisApplication.GetFactory().IsDataSet(iDataSet):
+                raise Exception("Invalid IDataSet object.")
+
+        if iDataSet is None or iDataSet.GetSizeX() == 0:
+            return None
+
+        #  Convert channel and timepoint to 0-based indexing
+        channel = channel - self._mIndexingStart
+        timepoint = timepoint - self._mIndexingStart
+
+        # Check that the requested channel and timepoint exist
+        if channel < 0 or channel > iDataSet.GetSizeC() - 1:
+            raise Exception("The requested channel index is out of bounds!")
+        if timepoint < 0 or timepoint > iDataSet.GetSizeT() - 1:
+            raise Exception("The requested time index is out of bounds!")
+
+        # Convert also the spatial dimensions to 0-based indexing
+        x0 = int(x0 - self._mIndexingStart);
+        y0 = int(y0 - self._mIndexingStart);
+        z0 = int(z0 - self._mIndexingStart);
+
+        # Get the dataset class
+        imarisDataType = str(iDataSet.GetType())
+        if imarisDataType == "eTypeUInt8":
+            # Ice returns uint8 as a string: we must cast. This behavior might
+            # be changed in the future.
+            arr = np.array(iDataSet.GetDataSubVolumeAs1DArrayBytes( \
+                x0, y0, z0, channel, timepoint, dX, dY, dZ))
+            arr = np.frombuffer(arr.data, dtype=np.uint8)
+        elif imarisDataType == "eTypeUInt16":
+            arr = np.array(iDataSet.GetDataSubVolumeAs1DArrayShorts( \
+                x0, y0, z0, channel, timepoint, dX, dY, dZ), \
+                dtype=np.uint16)
+        elif imarisDataType == "eTypeFloat":
+            arr = np.array(iDataSet.GetDataSubVolumeAs1DArrayFloats( \
+                x0, y0, z0, channel, timepoint, dX, dY, dZ), \
+                dtype=np.float32)
+        else:
+            raise Exception("Bad value for iDataSet::getType().")
+
+        # Reshape
+        arr = np.reshape(arr, (dZ, dY, dX))
+
+        # Return
+        return arr
 
 
     def getDataVolume(self, channel, timepoint, iDataSet=None):
@@ -695,7 +748,7 @@ REMARKS:
             if not self.mImarisApplication.GetFactory().IsDataSet(iDataSet):
                 raise Exception("Invalid IDataSet object.")
 
-        if iDataSet.GetSizeX() == 0:
+        if iDataSet is None or iDataSet.GetSizeX() == 0:
             return None
 
         #  Convert channel and timepoint to 0-based indexing
@@ -703,9 +756,9 @@ REMARKS:
         timepoint = timepoint - self._mIndexingStart
 
         # Check that the requested channel and timepoint exist
-        if channel > iDataSet.GetSizeC() - 1:
+        if channel < 0 or channel > iDataSet.GetSizeC() - 1:
             raise Exception("The requested channel index is out of bounds!")
-        if timepoint > iDataSet.GetSizeT() - 1:
+        if timepoint < 0 or timepoint > iDataSet.GetSizeT() - 1:
             raise Exception("The requested time index is out of bounds!")
 
         # Get the dataset class
@@ -1073,7 +1126,6 @@ OUTPUT
         return p.tolist()
 
 
-    # @TODO Finish
     def mapRgbaScalarToVector(self, rgbaScalar):
         """Maps an int32 RGBA scalar to an 1-by-4, (0..1) vector.
 
@@ -1098,7 +1150,7 @@ OUTPUT
         # And now tranform it into a vector of floats in the 0 .. 1 range
         return np.asarray(rgbaUint8Vector, dtype=np.float32) / 255 
 
-    # @TODO Finish
+
     def mapRgbaVectorToScalar(self, rgbaVector):
         """Maps an 1-by-4, (0..1) RGBA vector to an int32 scalar.
 
