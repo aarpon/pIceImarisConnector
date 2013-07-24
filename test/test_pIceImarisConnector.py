@@ -208,7 +208,6 @@ if __name__ == '__main__':
     children = conn.getAllSurpassChildren(True, 'MeasurementPoints')
     assert(len(children) == 1)
  
- 
     # Get the type
     # =========================================================================
     print('Get and check the datatype...')
@@ -249,12 +248,31 @@ if __name__ == '__main__':
     assert(y == DATASETSIZE[1])
     assert(z == DATASETSIZE[2])
  
-    # # Check the getDataVolumeRM() method
-    # # =========================================================================
-    # print('Check getting the volume in row-major order...')
-    # stackRM = conn.getDataVolumeRM(0, 0)
-    # assert(all(all(stack(:, :, 27) == (stackRM(:, :, 27))')))
+    # % Check the getDataSubVolume{RM}() methods
+    # % =========================================================================
+    # disp('Check that subvolumes in column- and row-major order are consistent...');
+    # stackRM = conn.getDataVolumeRM(0, 0);
+    # assert(all(all(stack(:, :, 27) == (stackRM(:, :, 27))')));
     # 
+    # % Check that subvolumes in column- and row-major order are consistent...
+    # subStack = conn.getDataSubVolume(76, 111, 37, 0, 0, 10, 10, 2);
+    # subStackRM = conn.getDataSubVolumeRM(76, 111, 37, 0, 0, 10, 10, 2);
+    # assert(all(all(subStack(:, :, 1) == (subStackRM(:, :, 1))')));
+    # assert(all(all(subStack(:, :, 2) == (subStackRM(:, :, 2))')));
+    # 
+    # % Check the getDataSubVolume{RM}() vs. the getDataVolume{RM} methods
+    # % =========================================================================
+    # disp('Check that subvolumes are extracted correctly in row- and column-order...');
+    # 
+    # % Check that subvolumes in column- and row-major order are consistent...
+    # % Since indexingStart is 0 we must correct the indexing in stack
+    # % accordingly (i.e. add 1 to x0, y0 and z0). Moreover, for the RM
+    # % (sub)stacks, we have to swap the coordinates.
+    # assert(all(all(subStack(:, :, 1) == (stack(77 : 86, 112 : 121, 38)))));
+    # assert(all(all(subStack(:, :, 2) == (stack(77 : 86, 112 : 121, 39)))));
+    # assert(all(all(subStackRM(:, :, 1) == (stackRM(112 : 121, 77 : 86, 38)))));
+    # assert(all(all(subStackRM(:, :, 2) == (stackRM(112 : 121, 77 : 86, 39)))));
+
     # Get the rotation matrix from the camera angle
     # =========================================================================
     # print('Get the rotation matrix from the camera angle...')
@@ -266,7 +284,7 @@ if __name__ == '__main__':
     #         ]
     # R = conn.getSurpassCameraRotationMatrix()
     # assert(all(all(abs(R - R_D) < 1e-4)) == 1)
-    # 
+
     # Check getting/setting colors and transparency
     # =========================================================================
     print('Check getting/setting colors and transparency...')
@@ -304,7 +322,6 @@ if __name__ == '__main__':
     # Create an ImarisConnector object with starting index 1
     # =========================================================================
     del(conn)
-
     print('Create an IceImarisConnector object with starting index 1...')
     conn = pIceImarisConnector(indexingStart=1)
      
@@ -329,6 +346,35 @@ if __name__ == '__main__':
     stackIndx1 = conn.getDataVolume(1, 1)
     assert(np.array_equal(stack, stackIndx1))
 
+    # % Check the getDataSubVolume{RM}() methods
+    # % =========================================================================
+    # disp('Check that subvolumes in column- and row-major order are consistent...');
+    # stackRMIndx1 = conn.getDataVolumeRM(1, 1);
+    # assert(all(all(stackIndx1(:, :, 27) == (stackRMIndx1(:, :, 27))')));
+    # 
+    # % Check that subvolumes in column- and row-major order are consistent...
+    # subStackIndx1 = conn.getDataSubVolume(76, 111, 37, 1, 1, 10, 10, 2);
+    # subStackRMIndx1 = conn.getDataSubVolumeRM(76, 111, 37, 1, 1, 10, 10, 2);
+    # assert(all(all(subStackIndx1(:, :, 1) == (subStackRMIndx1(:, :, 1))')));
+    # assert(all(all(subStackIndx1(:, :, 2) == (subStackRMIndx1(:, :, 2))')));
+    # 
+    # % Check the getDataSubVolume{RM}() vs. the getDataVolume{RM} methods
+    # % =========================================================================
+    # disp('Check that subvolumes are extracted correctly in row- and column-order...');
+    # 
+    # % Check that subvolumes in column- and row-major order are consistent...
+    # % Since indexingStart is 0 we must correct the indexing in stack
+    # % accordingly (i.e. add 1 to x0, y0 and z0). Moreover, for the RM
+    # % (sub)stacks, we have to swap the coordinates.
+    # assert(all(all(subStackIndx1(:, :, 1) == ...
+    #     (stackIndx1(76 : 85, 111 : 120, 37)))));
+    # assert(all(all(subStackIndx1(:, :, 2) == ...
+    #     (stackIndx1(76 : 85, 111 : 120, 38)))));
+    # assert(all(all(subStackRMIndx1(:, :, 1) == ...
+    #     (stackRMIndx1(111 : 120, 76 : 85, 37)))));
+    # assert(all(all(subStackRMIndx1(:, :, 2) == ...
+    #     (stackRMIndx1(111 : 120, 76 : 85, 38)))));
+    
     # Close Imaris
     # =========================================================================
     print('Close Imaris...')
