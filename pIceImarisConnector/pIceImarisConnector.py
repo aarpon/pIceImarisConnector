@@ -59,9 +59,6 @@ class pIceImarisConnector(object):
     # ICE ImarisApplication object
     _mImarisApplication = None
 
-    # Indexing start
-    _mIndexingStart = 0
-
     # Imaris ID
     _mImarisObjectID = 0
 
@@ -79,11 +76,6 @@ class pIceImarisConnector(object):
         return self._mImarisApplication
 
 
-    @property
-    def indexingStart(self):
-        return self._mIndexingStart
-
-
     def __new__(cls, *args, **kwargs):
         """Create or re-use a pIceImarisConnector object."""
         if args and args[0] is not None and \
@@ -95,7 +87,7 @@ class pIceImarisConnector(object):
             return object.__new__(cls, *args, **kwargs)
 
 
-    def __init__(self, imarisApplication=None, indexingStart=0):
+    def __init__(self, imarisApplication=None):
         """"Initializes the created pIceImarisConnector object.
 
 SYNOPSIS:
@@ -119,39 +111,6 @@ imarisApplication : (optional) if omitted (or set to None), a
                     - a pIceImarisConnector reference
                     - an Imaris Application ICE object.
 
-indexingStart     : (optional, default is 0) either 0 or 1,
-                    depending on whether you prefer to index
-                    arrays in pIceImarisConnector starting at
-                    0 or 1.
-
-                    In the MATLAB version of IceImarisConnector,
-                    indexingStart can optionally be set to 1 to
-                    map the 1-based indexing of MATLAB to the 0-
-                    based indexing used by ImarisLib and ICE,
-                    though by default it is set to 0 to maintain
-                    consistency across MATLAB and ICE.
-
-                    Since pIceImarisConnector strives to offer
-                    the same API as its MATLAB counterpart,
-                    indexingStart can be set here as well, though
-                    in practice it might not make much sense to
-                    change the default value of 0.
-
-                    By default, then, to get the data volume
-                    for the first channel and first time point of
-                    the dataset you will use:
-
-                        conn.GetDataVolume(0, 0)
-
-                    It you are come confortable with 1-based
-                    indexing, i.e. you prefer using:
-
-                        conn.GetDataVolume(1, 1)
-
-                    you can set indexingStart to 1.
-
-                    Whatever you choose, be consistent!
-
         """
 
         # If imarisApplication is a pIceImarisConnector reference,
@@ -162,10 +121,6 @@ indexingStart     : (optional, default is 0) either 0 or 1,
         if imarisApplication is not None and \
                 type(imarisApplication).__name__ == "pIceImarisConnector":
             return
-
-        # Check arguments
-        if indexingStart != 0 and indexingStart != 1:
-            raise ValueError("indexingStart must be either 0 or 1!")
 
         # Store the required paths
         self._findImaris()
@@ -185,9 +140,6 @@ indexingStart     : (optional, default is 0) either 0 or 1,
 
         # Assign a random id
         self._mImarisObjectID = random.randint(0, 100000)
-
-        # Set the indexing start
-        self._mIndexingStart = indexingStart
 
         # Now we check the (optional) input parameter imarisApplication.
         # We have three remaining cases (the first one we took care of
@@ -671,20 +623,11 @@ This function gets the volume as a 1D array and reshapes it in place.
         if iDataSet is None or iDataSet.GetSizeX() == 0:
             return None
 
-        #  Convert channel and timepoint to 0-based indexing
-        channel = channel - self._mIndexingStart
-        timepoint = timepoint - self._mIndexingStart
-
         # Check that the requested channel and timepoint exist
         if channel < 0 or channel > iDataSet.GetSizeC() - 1:
             raise Exception("The requested channel index is out of bounds!")
         if timepoint < 0 or timepoint > iDataSet.GetSizeT() - 1:
             raise Exception("The requested time index is out of bounds!")
-
-        # Convert also the spatial dimensions to 0-based indexing
-        x0 = int(x0 - self._mIndexingStart);
-        y0 = int(y0 - self._mIndexingStart);
-        z0 = int(z0 - self._mIndexingStart);
 
         # Get the dataset class
         imarisDataType = str(iDataSet.GetType())
@@ -750,10 +693,6 @@ REMARKS:
 
         if iDataSet is None or iDataSet.GetSizeX() == 0:
             return None
-
-        #  Convert channel and timepoint to 0-based indexing
-        channel = channel - self._mIndexingStart
-        timepoint = timepoint - self._mIndexingStart
 
         # Check that the requested channel and timepoint exist
         if channel < 0 or channel > iDataSet.GetSizeC() - 1:
@@ -1200,15 +1139,6 @@ None
         if not self.isAlive():
             return None
 
-        if channel < 1 and self._mIndexingStart == 1:
-            raise ValueError("channel cannot be < 1 if indexingStart is 1.")
-        
-        if timepoint < 1 and self._mIndexingStart == 1:
-            raise ValueError("timepoint cannot be < 1 if indexingStart is 1.")
-
-        if not self.isAlive():
-            return
-
         # Check that we have a numpy array
         if not isinstance(stack, np.ndarray):
             raise TypeError("Expected numpy array.")
@@ -1224,10 +1154,6 @@ None
                 sz = (sz[0], sz[1], 1)
             iDataSet = self.createDataset(stack.dtype, sz[0], sz[1], sz[2], 1, 1)
                 
-        #  Convert channel and timepoint to 0-based indexing
-        channel = channel - self._mIndexingStart
-        timepoint = timepoint - self._mIndexingStart
-
         # Check that the requested channel and timepoint exist
         if channel > iDataSet.GetSizeC() - 1:
             raise Exception("The requested channel index is out of bounds!")

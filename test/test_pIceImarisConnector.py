@@ -61,11 +61,6 @@ if __name__ == '__main__':
     print('Test if connection is alive...')
     assert(conn.isAlive() == True)
     
-    # Check the starting index
-    # =========================================================================
-    print('Check default starting index...')
-    assert(conn.indexingStart == 0)
-    
     # Open a file
     # =======================================================s==================
     print('Load file...')
@@ -304,73 +299,10 @@ if __name__ == '__main__':
     print('Close Imaris...')
     assert(conn.closeImaris(1) == 1)
      
-    # Create an ImarisConnector object with starting index 1
-    # =========================================================================
-    del(conn)
-    print('Create an IceImarisConnector object with starting index 1...')
-    conn = pIceImarisConnector(indexingStart=1)
-     
-    # Start Imaris
-    # =========================================================================
-    print('Start Imaris...')
-    assert(conn.startImaris() == 1)
-
-    # Check the starting index
-    # =========================================================================
-    print('Check starting index...')
-    assert(conn.indexingStart == 1)
-
-    # Open a file
-    # =========================================================================
-    print('Load file...')
-    conn.mImarisApplication.FileOpen(filename, '')
-
-    # Get and compare the data volume
-    # =========================================================================
-    print('Get and compare the data volume...')
-    stackIndx1 = conn.getDataVolume(1, 1)
-    assert(np.array_equal(stack, stackIndx1))
-
-    # % Check the getDataSubVolume{RM}() methods
-    # % =========================================================================
-    # disp('Check that subvolumes in column- and row-major order are consistent...');
-    # stackRMIndx1 = conn.getDataVolumeRM(1, 1);
-    # assert(all(all(stackIndx1(:, :, 27) == (stackRMIndx1(:, :, 27))')));
-    # 
-    # % Check that subvolumes in column- and row-major order are consistent...
-    # subStackIndx1 = conn.getDataSubVolume(76, 111, 37, 1, 1, 10, 10, 2);
-    # subStackRMIndx1 = conn.getDataSubVolumeRM(76, 111, 37, 1, 1, 10, 10, 2);
-    # assert(all(all(subStackIndx1(:, :, 1) == (subStackRMIndx1(:, :, 1))')));
-    # assert(all(all(subStackIndx1(:, :, 2) == (subStackRMIndx1(:, :, 2))')));
-    # 
-    # % Check the getDataSubVolume{RM}() vs. the getDataVolume{RM} methods
-    # % =========================================================================
-    # disp('Check that subvolumes are extracted correctly in row- and column-order...');
-    # 
-    # % Check that subvolumes in column- and row-major order are consistent...
-    # % Since indexingStart is 0 we must correct the indexing in stack
-    # % accordingly (i.e. add 1 to x0, y0 and z0). Moreover, for the RM
-    # % (sub)stacks, we have to swap the coordinates.
-    # assert(all(all(subStackIndx1(:, :, 1) == ...
-    #     (stackIndx1(76 : 85, 111 : 120, 37)))));
-    # assert(all(all(subStackIndx1(:, :, 2) == ...
-    #     (stackIndx1(76 : 85, 111 : 120, 38)))));
-    # assert(all(all(subStackRMIndx1(:, :, 1) == ...
-    #     (stackRMIndx1(111 : 120, 76 : 85, 37)))));
-    # assert(all(all(subStackRMIndx1(:, :, 2) == ...
-    #     (stackRMIndx1(111 : 120, 76 : 85, 38)))));
-    
-    # Close Imaris
-    # =========================================================================
-    print('Close Imaris...')
-    assert(conn.closeImaris() == 1)
-    del(conn)
- 
     # Create an ImarisConnector object with starting index 0
     # =========================================================================
-    print('Create an IceImarisConnector object with starting index 0...')
+    print('Create an IceImarisConnector object...')
     conn = pIceImarisConnector()
-    assert(conn.indexingStart==0)
 
     # Start Imaris
     # =========================================================================
