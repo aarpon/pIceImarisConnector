@@ -622,6 +622,32 @@ This function gets the volume as a 1D array and reshapes it in place.
 
         if iDataSet is None or iDataSet.GetSizeX() == 0:
             return None
+        
+        # Check the boundaries
+        if x0 < 0 or x0 > iDataSet.GetSizeX() - 1:
+            raise ValueError('The requested starting position x0 is out of bounds.')
+        
+        if y0 < 0 or y0 > iDataSet.GetSizeY() - 1:
+            raise ValueError('The requested starting position y0 is out of bounds.')
+        
+        if z0 < 0 or z0 > iDataSet.GetSizeZ() - 1:
+            raise ValueError('The requested starting position z0 is out of bounds.')
+        
+        if channel < 0 or channel > iDataSet.GetSizeC() - 1:
+            raise ValueError('The requested channel index is out of bounds.')
+
+        if timepoint < 0 or timepoint > iDataSet.GetSizeT() - 1:
+            raise ValueError('The requested timepoint index is out of bounds.')
+        
+        # Check that we are within bounds
+        if x0 + dX > iDataSet.GetSizeX():
+            raise ValueError('The requested x range dimension is out of bounds.')
+        
+        if y0 + dY > iDataSet.GetSizeY():
+            raise ValueError('The requested x range dimension is out of bounds.')
+
+        if z0 + dZ > iDataSet.GetSizeZ():
+            raise ValueError('The requested x range dimension is out of bounds.')
 
         # Check that the requested channel and timepoint exist
         if channel < 0 or channel > iDataSet.GetSizeC() - 1:

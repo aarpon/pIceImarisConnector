@@ -252,7 +252,18 @@ if __name__ == '__main__':
     subVolume = conn.getDataSubVolume(112, 77, 38, 0, 0, 10, 10, 2)
     subStack = stack[38 : 40, 77 : 87, 112 : 122]
     assert(np.array_equal(subStack, subVolume))
- 
+    
+    # Check the boundaries
+    # =========================================================================
+    print('Check subvolume boundaries...');
+    subVolume = conn.getDataSubVolume(0, 0, 0, 0, 0, x, y, z)
+    sX = subVolume.shape[2]
+    sY = subVolume.shape[1]
+    sZ = subVolume.shape[0]   
+    assert(sX == DATASETSIZE[0])
+    assert(sY == DATASETSIZE[1])
+    assert(sZ == DATASETSIZE[2])
+
     # Get the rotation matrix from the camera angle
     # =========================================================================
     # print('Get the rotation matrix from the camera angle...')
