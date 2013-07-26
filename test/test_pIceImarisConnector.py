@@ -266,15 +266,16 @@ if __name__ == '__main__':
 
     # Get the rotation matrix from the camera angle
     # =========================================================================
-    # print('Get the rotation matrix from the camera angle...')
-    # R_D = [
-    #     0.8471    0.2345   -0.4769         0
-    #    -0.1484    0.9661    0.2115         0
-    #     0.5103   -0.1084    0.8532         0
-    #          0         0         0    1.0000
-    #         ]
-    # R = conn.getSurpassCameraRotationMatrix()
-    # assert(all(all(abs(R - R_D) < 1e-4)) == 1)
+    print('Get the rotation matrix from the camera angle...')
+    R_D = np.array(\
+                   [\
+                    [ 0.8471,  0.2345, -0.4769,  0.0000], \
+                    [-0.1484,  0.9661,  0.2115,  0.0000], \
+                    [ 0.5103, -0.1084,  0.8532,  0.0000], \
+                    [ 0.0000,  0.0000,  0.0000,  1.0000]])
+    
+    R = conn.getSurpassCameraRotationMatrix()
+    assert(np.all((abs(R - R_D) < 1e-4)))
 
     # Check getting/setting colors and transparency
     # =========================================================================

@@ -36,6 +36,7 @@ import random
 import imp
 import subprocess
 import time
+import math
 import numpy as np
 
 class pIceImarisConnector(object):
@@ -840,7 +841,7 @@ datatype is unknown to Imaris).
                 self._mImarisApplication.GetDataSet().GetSizeC(),
                 self._mImarisApplication.GetDataSet().GetSizeT())
 
-    # @TODO
+
     def getSurpassCameraRotationMatrix(self):
         """Calculates the rotation matrix that corresponds to current view in
         the Surpass Scene (from the Camera Quaternion) for the axes with
@@ -858,11 +859,69 @@ None
 OUTPUTS:
 
 R:      (4 x 4) rotation matrix
-isI:    true if the rotation matrix is the Identity matrix, i.e. the
+isI:    True if the rotation matrix is the Identity matrix, i.e. the
         camera is perpendicular to the dataset
 
         """
-        pass
+        
+        # Get the camera
+        vCamera = self.mImarisApplication.GetSurpassCamera();
+        if vCamera is None:
+            return None
+        
+        # Get the camera position quaternion
+        q = vCamera.GetOrientationQuaternion();
+        
+        # Aliases
+        X = q[0];
+        Y = q[1];
+        Z = q[2];
+        W = q[3];
+
+        # Make sure the quaternion is a unit quaternion
+        n2 = X^2 + Y^2 + Z^2 + W^2
+        if abs(n2 - 1) > 1e-4:
+            n = math.sqrt(n2)
+            X = X / n
+            Y = Y / n
+            Z = Z / n
+            W = W / n
+        
+        # Calculate the rotation matrix R from the quaternion
+        R = np.zeros(4, 4)
+        x2 = X + X
+        y2 = Y + Y
+        z2 = Z + Z;
+        xx = X * x2   
+        xy = X * y2
+        xz = X * z2
+        yy = Y * y2
+        yz = Y * z2
+        zz = Z * z2
+        wx = W * x2
+        wy = W * y2
+        wz = W * z2;
+
+        R[0, 0] = 1.0 - (yy + zz)
+        R[0, 1] = xy - wz
+        R[0, 2] = xz + wy
+
+        R[1, 0] = xy + wz
+        R[1, 1] = 1.0 - (xx + zz)
+        R[1, 2] = yz - wx
+
+        R[2, 0] = xz - wy
+        R[2, 1] = yz + wx
+        R[2, 2] = 1.0 - (xx + yy)
+
+        R[3, 3] = 1.0
+        
+        # Is R the Identity matrix?
+        T = R == np.identity(4)
+        isI = np.all(abs(R - T) < 1e-4)
+        
+        # Return R and isI
+        return (R, isI)
 
 
     def getSurpassSelection(self, typeFilter=None):
