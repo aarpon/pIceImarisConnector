@@ -42,16 +42,16 @@ import numpy as np
 class pIceImarisConnector(object):
     """pIceImarisConnector is a simple Python class that eases communication
     between Bitplane Imaris and Python using the Imaris XT interface.
-
+    
     """
 
     # pIceImarisConnector version
-    _mVersion = "0.3.1-alpha"
+    _mVersion = "0.3.0-beta"
 
     # Imaris-related paths
     _mImarisPath = ""
     _mImarisExePath = ""
-    _mImarisServerExePath = ""
+    _mImarisServerIceExePath = ""
     _mImarisLibPath = ""
 
     # ImarisLib object
@@ -64,7 +64,7 @@ class pIceImarisConnector(object):
     _mImarisObjectID = 0
 
     # Use control
-    _mUserControl = 0
+    _mUserControl = False
 
 
     @property
@@ -78,7 +78,14 @@ class pIceImarisConnector(object):
 
 
     def __new__(cls, *args, **kwargs):
-        """Create or re-use a pIceImarisConnector object."""
+        """Create or re-use a pIceImarisConnector object.
+        
+        If an argument of type pIceImarisConnector is passed to __new__(),
+        this is returned; otherwise, a new pIceImarisConnector object is 
+        instantiated and returned.
+
+        """
+        
         if args and args[0] is not None and \
                 type(args[0]).__name__ == "pIceImarisConnector":
             # Reusing passed object
@@ -90,10 +97,6 @@ class pIceImarisConnector(object):
 
     def __init__(self, imarisApplication=None):
         """"Initializes the created pIceImarisConnector object.
-
-SYNOPSIS:
-
-@TODO
 
 ARGUMENTS:
 
@@ -177,14 +180,22 @@ imarisApplication : (optional) if omitted (or set to None), a
 
 
     def __del__(self):
-        """pIceImarisConnector destructor."""
-        if self._mUserControl == 1:
+        """pIceImarisConnector destructor.
+        
+        If UserControl is True, Imaris terminates when the IceImarisConnector
+        object is deleted. If is it set to False, Imaris stays open after the
+        IceImarisConnector object is deleted.
+
+        """
+        
+        if self._mUserControl == True:
             if self._mImarisApplication is not None:
                 self.closeImaris()
 
 
     def __str__(self):
         """Converts the pIceImarisConnector object to a string."""
+        
         if self._mImarisApplication is None:
             return "pIceImarisConnector: not connected to an Imaris " \
                   "instance yet."
@@ -197,7 +208,7 @@ imarisApplication : (optional) if omitted (or set to None), a
 
 SYNOPSIS:
 
-@TODO
+derivedType = conn.autocast(dataItem)
 
 ARGUMENTS:
 
@@ -218,6 +229,7 @@ returns one of the Imaris::IDataItem subclasses:
                     - Imaris::ISurpassCamera
                     - Imaris::IImageProcessing
                     - Imaris::IFactory
+
         """
 
         # Get the factory
@@ -264,7 +276,7 @@ object and resets the mImarisApplication property.
 
 SYNOPSIS:
 
-@TODO
+success = conn.closeImaris(quiet=False)
 
 ARGUMENTS:
 
@@ -299,15 +311,12 @@ quiet : (optional, default False) If True, Imaris won't pop-up a save
 
 SYNOPSIS:
 
-(1) newSpots = createAndSetSpots(coords, timeIndices, radii, ...
-                      name, color)
-(2) newSpots = createAndSetSpots(coords, timeIndices, radii, ...
-                      name, color, container)
+newSpots = conn.createAndSetSpots(coords, timeIndices, radii, ...
+                                  name, color, container=None)
 
 ARGUMENTS:
 
-coords      : (nx3) [x y z]n coordinate matrix (list)
-              in dataset units
+coords      : (nx3) [x y z]n coordinate matrix (list) in dataset units
 timeIndices : (nx1) vector (list) of spots time indices
 radii       : (nx1) vector (list) of spots radii
 name        : name of the Spots object
@@ -317,11 +326,12 @@ container   : (optional) if not set, the Spots object is added at the
               Please note that it is the user's responsibility to
               attach the container to the surpass scene!
 
-OUTPUTS
+OUTPUTS:
 
 newSpots    : the generated Spots object.
 
         """
+
         if not self.isAlive():
             return None
 
@@ -385,13 +395,13 @@ newSpots    : the generated Spots object.
                       voxelSizeX=1, voxelSizeY=1, voxelSizeZ=1, deltaTime=1):
         """Creates an Imaris dataset and replaces current one.
 
-SYNOPSIS
+SYNOPSIS:
 
-(1) createDataset(datatype, sizeX, sizeY, sizeZ, sizeC, sizeT)
-(2) createDataset(datatype, sizeX, sizeY, sizeZ, sizeC, sizeT, ...
+(1) iDataSet = createDataset(datatype, sizeX, sizeY, sizeZ, sizeC, sizeT)
+(2) iDataSet = createDataset(datatype, sizeX, sizeY, sizeZ, sizeC, sizeT, ...
                   voxelSizeX, voxelsSizeY, voxelSizeZ, deltaTime)
 
-ARGUMENTS
+ARGUMENTS:
 
 datatype  : one of 'uint8', 'uint16', 'single', Imaris.tType.eTypeUInt8,
             Imaris.tType.eTypeUInt16, Imaris.tType.eTypeFloat
@@ -406,23 +416,17 @@ voxelSizeZ: (optional, default = 1) voxel size in Z direction
 deltaTime : (optional, default = 1) time difference between consecutive
             time points
 
-OUTPUTS
+OUTPUTS:
 
-None
+iDataSet  : created DataSet
 
 EXAMPLE
 
-% Create a 2-by-3-by-2 stack
-data(:, :, 1) = [ 11 12 13; 14 15 16 ];
-data(:, :, 2) = [ 17 18 19; 20 21 22];
-data = uint8(data);
+conn.createDataset('uint8', 100, 200, 50, 3, 10, 0.20, 0.25, 0.5, 0.1)
 
-% Create a dataset with sizeX = 3, sizeY = 2 and sizeZ = 2
-conn.createDataset('uint8', 3, 2, 2, 1, 1);
+REMARKS:
 
-% Copy data into the Imaris dataset
-conn.setDataVolumeRM(data, 0, 0);
-
+The fact that the new DataSet is returnes does not mean that it must be added to Imaris manually!
         """
 
         # Is Imaris running?
@@ -497,7 +501,7 @@ by type.
 
 SYNOPSIS:
 
-@TODO
+children = conn.getAllSurpassChildren(recursive, typeFilter)
 
 ARGUMENTS:
 
@@ -519,6 +523,10 @@ typeFilter: (optional) Filters the children by type. Only the surpass
                 'Surfaces'
                 'SurpassCamera'
                 'Volume'
+
+OUTPUTS:
+ 
+children : list of objects.
 
         """
 
@@ -561,9 +569,6 @@ typeFilter: (optional) Filters the children by type. Only the surpass
         return children
 
 
-    # @TODO: fix documentation. Remember that indexing in Numpy is different.
-    # When using the : operator, to get values x0 : x (as in MATLAB), you must
-    # specify x0 : x + 1.
     def getDataSubVolume(self, x0, y0, z0, channel,
         timepoint, dX, dY, dZ, iDataSet=None):
         """Returns a data subvolume from Imaris.
@@ -590,25 +595,20 @@ Coordinates and extension are in voxels and not in units!
 
 The following holds:
 
-if conn.indexingStart == 0:
-
-    subA = conn.getDataSubVolume(x0, y0, z0, 0, 0, dX, dY, dZ)
-    A = conn.getDataVolume(0, 0)
-    A(x0 + 1 : x0 + dX, y0 + 1 : y0 + dY, z0 + 1 : z0 + dZ) === subA
-
-if conn.indexingStart == 1:
-
-    subA = conn.getDataSubVolume(x0, y0, z0, 1, 1, dX, dY, dZ)
-    A = conn.getDataVolume(1, 1)
-    A(x0 : x0 + dX - 1, y0 : y0 + dY - 1, z0 : z0 + dZ - 1) === subA
+stack = conn.getDataVolume(0, 0)
+subVolume = conn.getDataSubVolume(x0, y0, z0, 0, 0, dX, dY, dZ)
+subStack = stack[z0 : z0 + dZ, y0 : y0 + dY, x0 : x0 + dX]
+subVolume === subStack
 
 OUTPUTS:
 
-stack : data subvolume (3D matrix)
+stack : data subvolume (3D matrix).
 
 REMARKS:
 
-This function gets the volume as a 1D array and reshapes it in place.
+Implementation detail: this function gets the subvolume as a 1D array and
+reshapes it in place.
+
         """
 
         if not self.isAlive():
@@ -687,7 +687,7 @@ This function gets the volume as a 1D array and reshapes it in place.
 
 SYNOPSIS:
 
-@TODO
+stack = conn.getDataVolume(channel, timepoint, iDataSet=None)
 
 ARGUMENTS:
 
@@ -700,11 +700,12 @@ iDataset:   (optional) get the data volume from the passed IDataset
 
 OUTPUTS:
 
-stack    :  data volume (3D Numpy array)
+stack    :  data volume (3D Numpy array).
 
 REMARKS:
 
-    This function gets the volume as a 1D array and reshapes it in place.
+Imlementation detail: this function gets the volume as a 1D array and 
+reshapes it in place.
 
         """
 
@@ -752,7 +753,28 @@ REMARKS:
 
 
     def getExtends(self):
-        """Returns the dataset extends."""
+        """Returns the dataset extends.
+        
+SYNOPSIS:
+
+(minX, minY, minZ, maxX, maxY, maxZ) = conn.getExtends()
+
+ARGUMENTS:
+
+None
+
+OUTPUTS:
+
+extends tuple (minX, minY, minZ, maxX, maxY, maxZ), where:
+
+    minX : min extend along X dimension,
+    minY : min extend along Y dimension,
+    minZ : min extend along Z dimension,
+    maxX : max extend along X dimension,
+    maxY : max extend along Y dimension,
+    maxZ : max extend along Z dimension.
+
+        """
 
         # Wrap the extends into a tuple
         return (self._mImarisApplication.GetDataSet().GetExtendMinX(),
@@ -764,7 +786,23 @@ REMARKS:
 
 
     def getImarisVersionAsInteger(self):
-        """Returns the Imaris version as an integer."""
+        """Returns the Imaris version as an integer.
+        
+        v = 100000 * Major + 10000 * Minor + 100 * Patch
+ 
+SYNOPSIS:
+ 
+version = conn.getVersionAsInteger()
+
+ARGUMENTS:
+
+None
+ 
+OUTPUTS:
+
+version : Imaris version as integer.
+
+        """
 
         # Is Imaris running?
         if not self.isAlive():
@@ -809,6 +847,19 @@ REMARKS:
 (e.g. one of np.uint8, np.uint16, np.float32, or None if the
 datatype is unknown to Imaris).
 
+SYNOPSIS:
+
+type = conn.getNumpyDatatype()
+
+ARGUMENTS:
+
+None
+ 
+OUTPUTS:
+
+type: datatype of the dataset as a Numpy type: one of one of np.uint8,
+      np.uint16, np.float32, or None if the type is unknown in Imaris.
+
         """
 
         if not self.isAlive():
@@ -832,7 +883,26 @@ datatype is unknown to Imaris).
 
 
     def getSizes(self):
-        """Returns the dataset sizes."""
+        """Returns the dataset sizes.
+        
+SYNOPSIS:
+
+(sizeX, sizeY, sizeZ, sizeC, sizeT) = conn.getSizes()
+
+ARGUMENTS:
+
+None
+
+OUTPUTS:
+
+sizes tuple (sizeX, sizeY, sizeZ, sizeC, sizeT), where:
+
+    sizeX : dataset size X,
+    sizeY : dataset size Y,
+    sizeZ : number of planes,
+    sizeC : number of channels,
+    sizeT : number of time points.
+        """
 
         # Wrap the sizes into a tuple
         return (self._mImarisApplication.GetDataSet().GetSizeX(),
@@ -858,9 +928,9 @@ None
 
 OUTPUTS:
 
-R:      (4 x 4) rotation matrix
+R:      (4 x 4) rotation matrix.
 isI:    True if the rotation matrix is the Identity matrix, i.e. the
-        camera is perpendicular to the dataset
+        camera is perpendicular to the dataset.
 
         """
         
@@ -932,7 +1002,7 @@ does not match.
 
 SYNOPSIS:
 
-@TODO
+selection = conn.getSurpassSelection(typeFilter=None)
 
 ARGUMENTS:
 
@@ -952,6 +1022,12 @@ typeFilter: {True | False} (optional, default False) Specifies
                 'Surfaces'
                 'SurpassCamera'
                 'Volume'
+
+OUTPUTS:
+
+selection : autocasted, currently selected surpass object; if nothing
+            is selected, or if the object class does not match the
+            passed type, selection will be None instead.
 
         """
 
@@ -977,7 +1053,25 @@ typeFilter: {True | False} (optional, default False) Specifies
 
 
     def getVoxelSizes(self):
-        """Returns the X, Y, and Z voxel sizes of the dataset."""
+        """Returns the X, Y, and Z voxel sizes of the dataset.
+        
+SYNOPSIS:
+
+(voxelSizeX, voxelSizeY, voxelSizeZ) = conn.getVoxelSizes()
+
+ARGUMENTS:
+
+None
+
+OUTPUTS:
+
+voxel sizes tuple (voxelSizeX, voxelSizeY, voxelSizeZ), where:
+
+    voxelSizeX: voxel Size in X direction,
+    voxelSizeY: voxel Size in Y direction,
+    voxelSizeZ: voxel Size in Z direction.   
+
+        """
 
         # Voxel size X
         vX = (self._mImarisApplication.GetDataSet().GetExtendMaxX() - \
@@ -999,18 +1093,51 @@ typeFilter: {True | False} (optional, default False) Specifies
 
 
     def info(self):
-        """Prints pIceImarisConnector information."""
+        """Displays the full paths to the Imaris and ImarisServerIce executables 
+        and the ImarisLib module.
+        
+SYNOPSIS:
+
+conn.info()
+
+ARGUMENTS:
+
+None
+
+OUTPUTS:
+
+None
+
+REMARKS:
+
+A summary of the object properties is output to console.
+
+        """
 
         # Display info to console
         print("pIceImarisConnector version " + self.version + " using:")
         print("- Imaris path: " + self._mImarisPath)
         print("- Imaris executable: " + self._mImarisExePath)
-        print("- ImarisServer executable: " + self._mImarisServerExePath)
-        print("- ImarisLib.jar archive: " + self._mImarisLibPath)
+        print("- ImarisServerIce executable: " + self._mImarisServerIceExePath)
+        print("- ImarisLib module: " + self._mImarisLibPath)
 
 
     def isAlive(self):
-        """Checks whether the (stored) connection to Imaris is still alive."""
+        """Checks whether the (stored) connection to Imaris is still alive.
+        
+SYNOPSIS:
+
+result = conn.isAlive()
+
+ARGUMENTS:
+
+None
+ 
+OUTPUTS:
+
+result : True if the connection is still alive, False otherwise.
+        
+        """
 
         # Do we have an ImarisApplication object?
         if self._mImarisApplication is None:
@@ -1028,18 +1155,18 @@ typeFilter: {True | False} (optional, default False) Specifies
     def mapPositionsUnitsToVoxels(self, *args):
         """Maps voxel coordinates in dataset units to voxel indices.
 
-SYNOPSIS
+SYNOPSIS:
 
 pos = conn.mapPositionsUnitsToVoxels(uPos)
 
-INPUT
+ARGUMENTS:
 
-   uPos  : (N x 3) matrix containing the X, Y, Z coordinates in dataset
-           units
+uPos  : (N x 3) matrix containing the X, Y, Z coordinates in dataset
+        units; it can be either a list or a float32 Numpy array.
 
-OUTPUT
+OUTPUTS:
 
-   pos   : (N x 3) matrix containing the X, Y, Z voxel indices
+pos   : (N x 3) matrix (list) containing the X, Y, Z voxel indices.
 
         """
 
@@ -1048,7 +1175,7 @@ OUTPUT
             return None
 
         # Error message
-        errMsg = "Expected an (n x 3) array or Numpy array."
+        errMsg = "Expected an (n x 3) list or Numpy array (np.float32)."
 
         # Check the number, type and dimensions of arguments
         nArg = len(args)
@@ -1071,6 +1198,10 @@ OUTPUT
         if uPos.ndim != 2 or uPos.shape[1] != 3:
             raise ValueError(errMsg)
 
+        # Make sure to have a float32 array
+        if uPos.dtype != np.float32:
+            uPos = uPos.astype(np.float32)
+
         # Get the voxel sizes into a Numpy array
         voxelSizes = np.array(self.getVoxelSizes())
 
@@ -1090,19 +1221,20 @@ OUTPUT
     def mapPositionsVoxelsToUnits(self, *args):
         """Maps voxel indices in dataset units to unit coordinates.
 
-SYNOPSIS
+SYNOPSIS:
 
 pos = conn.mapPositionsVoxelsToUnits(vPos)
 
-INPUT
+ARGUMENTS:
 
-   vPos  : (N x 3) matrix containing the X, Y, Z unit coordinates
-            mapped onto a voxel grid
+vPos  : (N x 3) matrix containing the X, Y, Z unit coordinates
+       mapped onto a voxel grid; it can be either a list or a float32 Numpy
+       array.
 
-OUTPUT
+OUTPUTS:
 
-   pos   : (N x 3) matrix containing the X, Y, Z coordinates in
-           dataset units
+pos   : (N x 3) matrix (list) containing the X, Y, Z coordinates in
+        dataset units.
 
         """
 
@@ -1134,6 +1266,10 @@ OUTPUT
         if vPos.ndim != 2 or vPos.shape[1] != 3:
             raise ValueError(errMsg)
 
+        # Make sure to have a float32 array
+        if vPos.dtype != np.float32:
+            vPos = vPos.astype(np.float32)
+
         # Get the voxel sizes
         voxelSizes = np.array(self.getVoxelSizes())
 
@@ -1151,10 +1287,37 @@ OUTPUT
 
 
     def mapRgbaScalarToVector(self, rgbaScalar):
-        """Maps an int32 RGBA scalar to an 1-by-4, (0..1) vector.
+        """Maps an int32 RGBA scalar to an 1-by-4, (0..1) float vector.
 
-        Imaris returns an uint32 scalar as int32. We need to typecast
-        before we can operate on it.
+SYNOPSIS:
+
+rgbaScalar = mapRgbaVectorToScalar(rgbaScalar)
+
+ARGUMENTS:
+
+rgbaScalar: int32 scalar number coding for RGBA (as returned from Imaris via the
+            GetColorRGBA() method of IDataItem objects).
+            Alternatively, a Numpy "scalar" (i.e. an array containing just one
+            value) already cast to np.uint32 can also be provided.
+
+OUTPUTS:
+
+rgbaVector: 1-by-4 float32 Numpy array with [R G B A] indicating (R)ed, (G)reen,
+           (B)lue, and (A)lpha (=transparency; 0 is opaque) in the 0..1 range.
+
+IMPORTANT REMARKS:
+
+The scalar returned by ImarisXT via the GetColorRGBA() method of all IDataItem
+objects reaches python as signed int32 (instead of uint32). This means that if 
+the transparency is not zero (i.e. the value for A in the RGBA scalar is not 
+zero), the returned value WILL BE NEGATIVE! 
+
+The mapRgbaScalarToVector() function will work around this problem by 
+typecasting appropriately.
+
+Please notice that the combined values for R, G, and B will be represented 
+correctly no matter if the RGBA scalar is stored in an int32 or an uint32, 
+therefore the transparency "bug" does not affect the actual colors.
         
         """
         # rgbaScalar is a signed integer 32 bit, but we support
@@ -1177,6 +1340,34 @@ OUTPUT
 
     def mapRgbaVectorToScalar(self, rgbaVector):
         """Maps an 1-by-4, (0..1) RGBA vector to an int32 scalar.
+
+SYNOPSIS:
+
+rgbaScalar = mapRgbaVectorToScalar(rgbaVector)
+
+ARGUMENTS:
+
+rgbaVector: 1-by-4 float32 Numpy array with [R G B A] indicating (R)ed, (G)reen,
+            (B)lue, and (A)lpha (=transparency; 0 is opaque). All values are 
+            between 0 and 1.
+
+OUTPUTS:
+
+rgbaScalar: int32 scalar number coding for RGBA (to be used with the 
+            SetColorRGBA() method of IDataItem objects).
+
+IMPORTANT REMARKS:
+
+The way one calculates the RGBA value from an [R G B A] vector (with
+the values of R, G, B, and A all between 0 and 1) is simply:
+   
+uint32([R G B A] * [1 256 256^2 256^3])
+
+(where * is the matrix product). This gives a number between 0 and 2^32 - 1.
+
+To pass this number to Imaris through ImarisXT via the SetColorRGBA() method,
+we need to type cast it to a signed int32 first. If we do not do this, Imaris 
+will misinterpret the value for the transparency.
 
         """
 
@@ -1219,6 +1410,13 @@ timepoint: timepoint number (0/1-based depending on indexing start)
 OUTPUTS:
 
 None
+
+REMARKS:
+
+If a dataset exists, the X, Y, and Z dimensions must match the ones of 
+the stack being copied in. If no dataset exists, one will be created
+to fit it with default other values.
+
         """
 
         if not self.isAlive():
@@ -1268,16 +1466,19 @@ None
 
 SYNOPSIS:
 
-@TODO
+success = conn.startImaris(userControl=False)
 
 ARGUMENTS:
 
-userControl :   (optional, default False) The optional parameter
-                userControl sets the fate of Imaris when the client
-                is closed: if userControl is True, Imaris terminates
-                when the pIceImarisConnector object (conn) is deleted.
-                If is it set to False, Imaris stays open after the
-                client is closed.
+userControl: (optional, default False) The optional parameter userControl 
+             sets the fate of Imaris when the client is closed: if userControl
+             is True, Imaris terminates when the pIceImarisConnector object is 
+             deleted. If is it set to False, Imaris stays open after the 
+             pIceImarisConnector object is deleted.
+
+OUTPUTS:
+
+success : True if starting Imaris was successful, False otherwise.
 
         """
 
@@ -1295,9 +1496,9 @@ userControl :   (optional, default False) The optional parameter
         # Now we open a new one
         try:
 
-            # Start ImarisServer
-            if not self._startImarisServer():
-                raise Exception("Could not start ImarisServer!")
+            # Start ImarisServerIce
+            if not self._startImarisServerIce():
+                raise Exception("Could not start ImarisServerIce!")
 
             # Launch Imaris
             args = "id" + str(self._mImarisObjectID)
@@ -1356,12 +1557,28 @@ userControl :   (optional, default False) The optional parameter
 
     # --------------------------------------------------------------------------
     #
-    # PRIVATE METHODS
+    # PRIVATE METHODS FOR INTERNAL USE ONLY.
+    #
+    #    Please do not rely on the API of these methods to be preserved!
     #
     # --------------------------------------------------------------------------
 
     def _findImaris(self):
-        """Gets or discovers the path to the Imaris executable."""
+        """Gets or discovers the path to the Imaris executable. For internal 
+use only!
+        
+SYNOPSIS:
+
+conn._findImaris()
+
+ARGUMENTS:
+
+None
+
+OUTPUTS:
+
+None
+        """
 
         # Try getting the environment variable IMARISPATH
         imarisPath = os.getenv('IMARISPATH')
@@ -1403,7 +1620,7 @@ userControl :   (optional, default False) The optional parameter
         # executables and libraries
         self._mImarisPath = imarisPath
 
-        # Set the path to the Imaris and ImarisServer executable and to
+        # Set the path to the Imaris and ImarisServerIce executable and to
         # the ImarisLib library
         if self._ispc():
             exePath = os.path.join(imarisPath, 'Imaris.exe')
@@ -1427,27 +1644,31 @@ userControl :   (optional, default False) The optional parameter
             raise OSError("Could not find the Imaris executable.")
 
         if not os.path.isfile(serverExePath):
-            raise OSError("Could not find the ImarisServer executable.")
+            raise OSError("Could not find the ImarisServerIce executable.")
 
         # Now we can store the information and return success
         self._mImarisExePath = exePath
-        self._mImarisServerExePath = serverExePath
+        self._mImarisServerIceExePath = serverExePath
         self._mImarisLibPath = libPath
 
 
     def _findNewestVersionDir(self, directory):
         """Scans for candidate Imaris directories and returns the one
-        with highest version number. For internal use only!
+with highest version number. For internal use only!
 
 SYNOPSIS:
 
-@TODO
+conn._findNewestVersionDir(directory)
 
 ARGUMENTS:
 
 directory:  directory to be scanned. Most likely
             C:\\Program Files\\Bitplane in Windows and
             /Applications on Mac OS X.
+
+OUTPUTS:
+
+None
 
         """
 
@@ -1511,7 +1732,27 @@ directory:  directory to be scanned. Most likely
 
 
     def _getChildrenAtLevel(self, container, recursive, children):
-        """Scans the children of a given container recursively."""
+        """Scans the children of a given container recursively. For internal
+use only!
+
+SYNOPSIS:
+
+children = conn._getFilteredChildrenAtLevel(container, recursive, children)
+
+ARGUMENTS:
+
+container: data container to be scanned for children
+recursive: True if the container must be scanned recursively, False otherwise
+children : list of children. Since this is a recursive function, the list of 
+           children is passed as input so that the children found in current 
+           iteration can be appended to the list and returned for the next 
+           iteration. 
+
+OUTPUTS:
+
+children: list of children found (so far).  
+
+        """
 
         for i in range(container.GetNumberOfChildren()):
 
@@ -1532,7 +1773,39 @@ directory:  directory to be scanned. Most likely
 
     def _getFilteredChildrenAtLevel(self, container, recursive, \
                                     typeFilter, children):
-        """Scans the children of a certain type in a given container recursively."""
+        """Scans the children of a certain type in a given container recursively.
+For internal use only!
+
+SYNOPSIS:
+
+children = conn._getFilteredChildrenAtLevel(container, recursive, typeFilter, children)
+
+ARGUMENTS:
+
+container: data container to be scanned for children
+recursive: True if the container must be scanned recursively, False otherwise
+typeFilter: one of:
+            'Cells'
+            'ClippingPlane'
+            'Dataset'
+            'Filaments'
+            'Frame'
+            'LightSource'
+            'MeasurementPoints'
+            'Spots'
+            'Surfaces'
+            'SurpassCamera'
+            'Volume'
+children : list of children. Since this is a recursive function, the list of 
+           children is passed as input so that the children found in current 
+           iteration can be appended to the list and returned for the next 
+           iteration. 
+
+OUTPUTS:
+
+children: list of children found (so far).  
+
+        """
 
         for i in range(container.GetNumberOfChildren()):
 
@@ -1552,7 +1825,21 @@ directory:  directory to be scanned. Most likely
 
 
     def _importImarisLib(self):
-        """Imports the ImarisLib module."""
+        """Imports the ImarisLib module. For internal use only!
+        
+SYNOPSIS:
+
+conn._importImarisLib()
+
+ARGUMENTS:
+
+None
+
+OUTPUTS:
+
+None
+        
+        """
 
         # Dynamically find and import the ImarisLib module
         fileobj, pathname, description = imp.find_module('ImarisLib')
@@ -1563,7 +1850,20 @@ directory:  directory to be scanned. Most likely
 
     def _isImarisServerIceRunning(self):
         """ Checks whether an instance of ImarisServerIce is already running and
-can be reused.
+can be reused. For internal use only!
+
+SYNOPSIS:
+
+result = conn._isImarisServerIceRunning()
+
+ARGUMENTS:
+
+None
+
+OUTPUTS:
+
+result: True is an instance of ImarisServerIce is running and can be reused,
+        false otherwise.
 
         """
 
@@ -1576,7 +1876,7 @@ can be reused.
 
         elif self._ismac():
             result = subprocess.check_output(["ps", "aux"])
-            if self._mImarisServerExePath in result:
+            if self._mImarisServerIceExePath in result:
                 return True
         else:
             raise OSError('Unsupported platform.')
@@ -1585,17 +1885,33 @@ can be reused.
 
 
     def _ismac(self):
-        """Returns true if pIceImarisConnector is being run on Mac OS X."""
+        """Returns true if pIceImarisConnector is being run on Mac OS X. 
+For internal use only!
+
+SYNOPSIS:
+
+result = conn._ismac()
+
+ARGUMENTS:
+
+None
+
+OUTPUTS:
+
+result: True if pIceImarisConnector is being run on Mac OS X, False otherwise.
+        
+        """
 
         return platform.system() == "Darwin"
 
 
     def _isOfType(self, obj, typeValue):
-        """Checks that a passed object is of a given type.
+        """Checks that a passed object is of a given type. For internal use 
+only!
 
 SYNOPSIS:
 
-@TODO
+result = conn._isOfType(obj, typeValue)
 
 ARGUMENTS:
 
@@ -1614,7 +1930,11 @@ typeValue:  one of:
             'SurpassCamera'
             'Volume'
 
+OUTPUTS:
+
+result: True if the checked object is of the passed type, False otherwise.
         """
+        
         # Possible type values
         possibleTypeValues = ["Cells", "ClippingPlane", "Dataset", "Frame", \
                               "LightSource", "MeasurementPoints", "Spots", \
@@ -1654,19 +1974,63 @@ typeValue:  one of:
 
 
     def _ispc(self):
-        """Returns true if pIceImarisConnector is being run on Windows."""
+        """Returns true if pIceImarisConnector is being run on Windows. For
+internal use only!
+        
+SYNOPSIS:
+
+result = conn._ispc()
+
+ARGUMENTS:
+
+None
+
+OUTPUTS:
+
+result: True if pIceImarisConnector is being run on Windows, False otherwise.
+        """
 
         return platform.system() == "Windows"
 
 
     def _isSupportedPlatform(self):
-        """Returns True if running on a supported platform."""
+        """Returns True if running on a supported platform. For internal use 
+only!
+
+SYNOPSIS:
+
+result = conn._isSupportedPlatform()
+
+ARGUMENTS:
+
+None
+
+OUTPUTS:
+
+result: True if pIceImarisConnector is being run on Windows or Mac OS X, 
+        False otherwise.
+        
+        """
         return (self._ispc() or self._ismac())
 
 
-    def _startImarisServer(self):
+    def _startImarisServerIce(self):
         """Starts an instance of ImarisServerIce and waits until it is ready
-to accept connections."""
+to accept connections. For internal use only!
+
+SYNOPSIS:
+
+result = conn._startImarisServerIce
+
+ARGUMENTS:
+
+None
+
+OUTPUTS:
+
+result: True if ImarisServerIce could be started successfully, False otherwise.
+
+        """
 
         # Imaris only runs on Windows and Mac OS X
         if not self._isSupportedPlatform():
@@ -1680,7 +2044,7 @@ to accept connections."""
         # We start an instance of ImarisServerIce and wait until it is running
         # before returning success. We set a 10s time out limit
         try:
-            process = subprocess.Popen(self._mImarisServerExePath, bufsize=-1)
+            process = subprocess.Popen(self._mImarisServerIceExePath, bufsize=-1)
         except OSError as o:
             print(o)
             return False
