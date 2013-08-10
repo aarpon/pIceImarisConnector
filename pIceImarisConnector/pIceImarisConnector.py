@@ -879,7 +879,7 @@ isI:    True if the rotation matrix is the Identity matrix, i.e. the
         W = q[3];
 
         # Make sure the quaternion is a unit quaternion
-        n2 = X^2 + Y^2 + Z^2 + W^2
+        n2 = X**2 + Y**2 + Z**2 + W**2
         if abs(n2 - 1) > 1e-4:
             n = math.sqrt(n2)
             X = X / n
@@ -888,7 +888,7 @@ isI:    True if the rotation matrix is the Identity matrix, i.e. the
             W = W / n
         
         # Calculate the rotation matrix R from the quaternion
-        R = np.zeros(4, 4)
+        R = np.zeros((4, 4), dtype=np.float32)
         x2 = X + X
         y2 = Y + Y
         z2 = Z + Z;
