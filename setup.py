@@ -6,7 +6,7 @@ import pIceImarisConnector
 
 
 setup(name='pIceImarisConnector',
-      version='0.3.2',
+      version='0.3.0',
       author='Aaron Ponti',
       author_email='aarpon@gmail.com',
       url='http://www.scs2.net/next/index.php?id=110',
