@@ -258,7 +258,7 @@ object and resets the mImarisApplication property.
 :param quiet: (optional, default False) If True, Imaris won't pop-up a save dialog and close silently.
 :type  quiet: Boolean
 
-:return: True it Imaris could be closed successfully, False otherwise.
+:return: True if Imaris could be closed successfully, False otherwise.
 :rtype: Boolean
 
         """
