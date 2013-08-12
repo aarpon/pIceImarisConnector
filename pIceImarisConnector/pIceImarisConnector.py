@@ -20,9 +20,9 @@ between Bitplane Imaris and Python using the Imaris XT interface.
 
 imarisApplication can be:
 
-* None (i.e. omitted)
-* an Imaris Application ID as provided by Imaris
-* a pIceImarisConnector reference
+* None (i.e. omitted),
+* an Imaris Application ID as provided by Imaris,
+* a pIceImarisConnector reference,
 * an Imaris Application ICE object.
 
 If no input argument is provided, Imaris can then be started (and connected) using the ``startImaris()`` method:
@@ -190,7 +190,7 @@ IceImarisConnector object is deleted.
     def autocast(self, dataItem):
         """Casts IDataItems to their derived types.
 
-:param dataItem: object to be cast
+:param dataItem: object to be cast.
 :type  dataItem: Imaris::IDataItem
 
 :return: object cast to the appropriate *Imaris::IDataItem* subclass.
@@ -287,15 +287,15 @@ object and resets the mImarisApplication property.
                           color, container=None):
         """Creates Spots and adds them to the Surpass Scene.
 
-:param coords: (nx3) [x y z]n coordinate matrix in dataset units
+:param coords: (nx3) [x y z]n coordinate matrix in dataset units.
 :type coords: list
-:param timeIndices: (nx1) vector (list) of spots time indices
+:param timeIndices: (nx1) vector of spots time indices.
 :type timeIndices: list
-:param radii: (nx1) vector (list) of spots radii
+:param radii: (nx1) vector of spots radii.
 :type radii: list
-:param name: name of the Spots object
+:param name: name of the Spots object.
 :type name: string
-:param color: (1x4), (0..1) vector of [R, G, B, A] values
+:param color: (1x4), (0..1) vector of [R, G, B, A] values.
 :type color: list, tuple or float32 Numpy Array
 :param container: (optional) if not set, the Spots object is added at the root of the Surpass Scene. Please note that it is the user's responsibility to attach the container to the surpass scene!
 :type container: an Imaris::IDataContainer object
@@ -373,23 +373,23 @@ object and resets the mImarisApplication property.
 :type datatype: one of 'uint8', 'uint16', 'single', Imaris.tType.eTypeUInt8,
             Imaris.tType.eTypeUInt16, Imaris.tType.eTypeFloat
 
-:param sizeX: dataset width
+:param sizeX: dataset width.
 :type sizeX: int
-:param sizeY: dataset height
+:param sizeY: dataset height.
 :type sizeY: int
-:param sizeZ: number of planes
+:param sizeZ: number of planes.
 :type sizeZ: int
-:param sizeC: number of channels
+:param sizeC: number of channels.
 :type sizeC: int
-:param sizeT: number of timepoints
+:param sizeT: number of timepoints.
 :type sizeT: int
-:param voxelSizeX: (optional, default = 1) voxel size in X direction
+:param voxelSizeX: (optional, default = 1) voxel size in X direction.
 :type voxelSizeX: float
-:param voxelSizeY: (optional, default = 1) voxel size in Y direction
+:param voxelSizeY: (optional, default = 1) voxel size in Y direction.
 :type voxelSizeY: float
-:param voxelSizeZ: (optional, default = 1) voxel size in Z direction
+:param voxelSizeZ: (optional, default = 1) voxel size in Z direction.
 :type voxelSizeZ: float
-:param deltaTime: (optional, default = 1) time difference between consecutive time points
+:param deltaTime: (optional, default = 1) time difference between consecutive time points.
 :type deltaTime: float
 
 :return: created DataSet
@@ -488,7 +488,7 @@ The function takes care of adding the created dataset to Imaris.
 * 'SurpassCamera'
 * 'Volume'
 
-:return: child objects
+:return: child objects.
 :rtype: list
 
         """
@@ -542,17 +542,20 @@ The function takes care of adding the created dataset to Imaris.
 :type y0: int
 :param z0: z coordinate of the top-left vertex of the subvolume to be returned.
 :type z0: int
-:param channel: channel index
+:param channel: channel index.
 :type channel: int
-:param timepoint: timepoint index
+:param timepoint: timepoint index.
 :type timepoint: int
 :param dX: extension in x direction of the subvolume to be returned.
+:type dX: int
 :param dY: extension in y direction of the subvolume to be returned.
+:type dY: int
 :param dZ: extension in z direction of the subvolume to be returned.
+:type dZ: int
 :param iDataSet: (optional) get the data volume from the passed IDataSet object instead of current one; if omitted, current dataset (i.e. ``conn.mImarisApplication.GetDataSet()``) will be used. This is useful for instance when masking channels.
 :type iDataSet: Imaris::IDataSet
 
-:return: data subvolume
+:return: data subvolume.
 :rtype: Numpy array with dtype being on of ``numpy.uint8``, ``numpy.uint16``, ``numpy.float32``.
 
 **EXAMPLE**
@@ -567,7 +570,7 @@ The following holds:
 **REMARKS**
 
 * Implementation detail: this function gets the subvolume as a 1D array and reshapes it in place.
-* Coordinates and extensions are in voxels and not in units!
+* Coordinates and extensions are in voxels (integers) and not in units!
 
         """
 
@@ -645,11 +648,12 @@ The following holds:
     def getDataVolume(self, channel, timepoint, iDataSet=None):
         """Returns the data volume from Imaris.
 
-:param channel: channel index
+:param channel: channel index.
 :type channel: int
-:param timepoint: timepoint index
+:param timepoint: timepoint index.
 :type timepoint: int
 :param iDataSet: (optional) get the data volume from the passed IDataSet object instead of current one; if omitted, current dataset (i.e. ``conn.mImarisApplication.GetDataSet()``) will be used. This is useful for instance when masking channels.
+:type iDataSet: Imaris::IDataSet
 
 :return:  data volume (3D Numpy array).
 :rtype: Numpy array with dtype being on of ``np.uint8``, ``np.uint16``, ``np.float32``.
@@ -706,7 +710,7 @@ Implementation detail: this function gets the volume as a 1D array and reshapes 
     def getExtends(self):
         """Returns the dataset extends.
 
-:return: DataSet extends
+:return: DataSet extends.
 :rtype: tuple
 
 The extends tuple is: ``(minX, minY, minZ, maxX, maxY, maxZ)``, where:
@@ -732,7 +736,7 @@ The extends tuple is: ``(minX, minY, minZ, maxX, maxY, maxZ)``, where:
     def getImarisVersionAsInteger(self):
         """Returns the Imaris version as an integer.
 
-The conversion is performed as follows: ``v = 100000 * Major + 10000 * Minor + 100 * Patch``
+The conversion is performed as follows: ``v = 100000 * Major + 10000 * Minor + 100 * Patch``.
 
 :return: Imaris version as integer.
 :rtype: int
@@ -780,7 +784,7 @@ The conversion is performed as follows: ``v = 100000 * Major + 10000 * Minor + 1
     def getNumpyDatatype(self):
         """Returns the datatype of the dataset as a python Numpy type (or None).
 
-:return: datatype of the dataset as a Numpy type
+:return: datatype of the dataset as a Numpy type.
 :rtype: one of ``np.uint8``, ``np.uint16``, ``np.float32``, or ``None`` if the type is unknown in Imaris.
 
         """
@@ -808,7 +812,7 @@ The conversion is performed as follows: ``v = 100000 * Major + 10000 * Minor + 1
     def getSizes(self):
         """Returns the dataset sizes.
 
-:return: DataSet sizes
+:return: DataSet sizes.
 :rtype: tuple
 
 The sizes tuple is: ``(sizeX, sizeY, sizeZ, sizeC, sizeT)``, where:
@@ -963,7 +967,7 @@ The sizes tuple is: ``(sizeX, sizeY, sizeZ, sizeC, sizeT)``, where:
     def getVoxelSizes(self):
         """Returns the X, Y, and Z voxel sizes of the dataset.
 
-:return: dataset voxel sizes
+:return: dataset voxel sizes.
 :rtype: tuple
 
 The voxelsize tuple is: ``(voxelSizeX, voxelSizeY, voxelSizeZ)``, where:
@@ -1222,11 +1226,11 @@ The mapRgbaVectorToScalar() method will transparently work around this problem f
     def setDataVolume(self, stack, channel, timepoint):
         """Sets the data volume to Imaris.
 
-:param stack: 3D array
+:param stack: 3D array.
 :type stack: np.uint8, np.uint16 or np.float32
-:param channel: channel index
+:param channel: channel index.
 :type channel: int
-:param timepoint: timepoint index
+:param timepoint: timepoint index.
 :type timepoint: int
 
 **REMARKS**
@@ -1516,7 +1520,7 @@ If a dataset exists, the X, Y, and Z dimensions must match the ones of the stack
     def _getChildrenAtLevel(self, container, recursive, children):
         """Scans the children of a given container recursively. For internal use only!
 
-:param container: data container to be scanned for children
+:param container: data container to be scanned for children.
 :type container: Imaris::IDataContainer
 :param recursive: True if the container must be scanned recursively, False otherwise.
 :type recursive: Boolean
@@ -1549,7 +1553,7 @@ If a dataset exists, the X, Y, and Z dimensions must match the ones of the stack
                                     typeFilter, children):
         """Scans the children of a certain type in a given container recursively. For internal use only!
 
-:param container: data container to be scanned for children
+:param container: data container to be scanned for children.
 :type container: Imaris::IDataContainer
 :param recursive: True if the container must be scanned recursively, False otherwise.
 :type recursive: Boolean
