@@ -287,15 +287,15 @@ object and resets the mImarisApplication property.
                           color, container=None):
         """Creates Spots and adds them to the Surpass Scene.
 
-:param coords: (nx3) [x y z]n coordinate matrix in dataset units.
+:param coords: (nx3) [x, y, z]\ :sub:`n` coordinate matrix in dataset units.
 :type coords: list
-:param timeIndices: (nx1) vector of spots time indices.
+:param timeIndices: spots time indices.
 :type timeIndices: list
-:param radii: (nx1) vector of spots radii.
+:param radii: spots radii.
 :type radii: list
 :param name: name of the Spots object.
 :type name: string
-:param color: (1x4), (0..1) vector of [R, G, B, A] values.
+:param color: (1x4), (0..1) vector of [R, G, B, A] values. Example: [0.5, 1.0, 1.0, 1.0].
 :type color: list, tuple or float32 Numpy Array
 :param container: (optional) if not set, the Spots object is added at the root of the Surpass Scene. Please note that it is the user's responsibility to attach the container to the surpass scene!
 :type container: an Imaris::IDataContainer object
