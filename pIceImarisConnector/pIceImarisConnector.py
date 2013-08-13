@@ -20,7 +20,7 @@ between Bitplane Imaris and Python using the Imaris XT interface.
 
 imarisApplication can be:
 
-* None (i.e. omitted),
+* omitted (default),
 * an Imaris Application ID as provided by Imaris,
 * a pIceImarisConnector reference,
 * an Imaris Application ICE object.

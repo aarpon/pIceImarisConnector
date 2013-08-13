@@ -1,9 +1,4 @@
 from distutils.core import setup
-import sys
-
-sys.path.append('pIceImarisConnector')
-import pIceImarisConnector
-
 
 setup(name='pIceImarisConnector',
       version='0.3.0',
@@ -13,8 +8,8 @@ setup(name='pIceImarisConnector',
       download_url='http://www.scs2.net/next/index.php?id=110',
       description='IceImarisConnector for python (pIceImarisConnector) is a simple commodity class that eases communication between Bitplane Imaris and python using the Imaris XT interface.',
       long_description='',
-      package_dir={'': 'pIceImarisConnector'},
-      py_modules=['pIceImarisConnector'],
+      packages=['pIceImarisConnector'],
+      package_dir={'pIceImarisConnector': 'pIceImarisConnector'},
       provides=['pIceImarisConnector'],
       keywords='Imaris ImarisXT python Ice',
       license='GPL2.0',
