@@ -3,7 +3,7 @@ from distutils.core import setup
 setup(name='pIceImarisConnector',
       version='0.3.0',
       author='Aaron Ponti',
-      author_email='aarpon@gmail.com',
+      author_email='aaron.ponti@bsse.ethz.ch',
       url='http://www.scs2.net/next/index.php?id=110',
       download_url='http://www.scs2.net/next/index.php?id=110',
       description='IceImarisConnector for python (pIceImarisConnector) is a simple commodity class that eases communication between Bitplane Imaris and python using the Imaris XT interface.',
