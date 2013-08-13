@@ -18,16 +18,17 @@ between Bitplane Imaris and Python using the Imaris XT interface.
 
 :param imarisApplication: (optional) if omitted, a pIceImarisConnector object is created that is not connected to any Imaris instance.
 
-imarisApplication can be:
+Imaris can then be started (and connected) using the ``startImaris()`` method:
 
-* omitted (default),
+>>> conn.startImaris()
+
+Alternatively, imarisApplication can be:
+
 * an Imaris Application ID as provided by Imaris,
 * a pIceImarisConnector reference,
 * an Imaris Application ICE object.
 
-If no input argument is provided, Imaris can then be started (and connected) using the ``startImaris()`` method:
-
->>> conn.startImaris()
+In all these cases, the instantiated pIceImarisConnector object is connected to and ready to interface with Imaris.
 
     """
 
