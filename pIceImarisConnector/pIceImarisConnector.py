@@ -30,6 +30,17 @@ Alternatively, imarisApplication can be:
 
 In all these cases, the instantiated pIceImarisConnector object is connected to and ready to interface with Imaris.
 
+**REMARK**
+ 
+The Imaris Application ICE object is stored in the property mImarisApplication.
+The mImarisApplication property gives access to the entire Imaris ICE methods. 
+
+Example:
+ 
+>>> conn.mImarisApplication.GetSurpassSelection()
+ 
+returns the currently selected object in the Imaris surpass scene.
+
     """
 
     # pIceImarisConnector version
