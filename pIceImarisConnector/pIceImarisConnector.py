@@ -568,7 +568,7 @@ The function takes care of adding the created dataset to Imaris.
 :type iDataSet: Imaris::IDataSet
 
 :return: data subvolume.
-:rtype: Numpy array with dtype being on of ``numpy.uint8``, ``numpy.uint16``, ``numpy.float32``.
+:rtype: Numpy array with dtype being one of ``numpy.uint8``, ``numpy.uint16``, ``numpy.float32``.
 
 **EXAMPLE**
 
@@ -668,7 +668,7 @@ The following holds:
 :type iDataSet: Imaris::IDataSet
 
 :return:  data volume (3D Numpy array).
-:rtype: Numpy array with dtype being on of ``np.uint8``, ``np.uint16``, ``np.float32``.
+:rtype: Numpy array with dtype being one of ``np.uint8``, ``np.uint16``, ``np.float32``.
 
 **REMARKS**
 
