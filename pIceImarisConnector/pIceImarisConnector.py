@@ -33,7 +33,7 @@ In all these cases, the instantiated pIceImarisConnector object is connected to 
 **REMARK**
  
 The Imaris Application ICE object is stored in the property mImarisApplication.
-The mImarisApplication property gives access to the entire Imaris ICE methods. 
+The mImarisApplication property gives access to the entire Imaris ICE API. 
 
 Example:
  
