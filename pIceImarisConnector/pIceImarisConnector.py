@@ -577,7 +577,8 @@ The following holds:
 >>> stack = conn.getDataVolume(0, 0)
 >>> subVolume = conn.getDataSubVolume(x0, y0, z0, 0, 0, dX, dY, dZ)
 >>> subStack = stack[z0 : z0 + dZ, y0 : y0 + dY, x0 : x0 + dX]
->>> subVolume === subStack
+
+subVolume is identical to subStack
 
 **REMARKS**
 
@@ -858,18 +859,18 @@ The sizes tuple is: ``(sizeX, sizeY, sizeZ, sizeC, sizeT)``, where:
         """
 
         # Get the camera
-        vCamera = self.mImarisApplication.GetSurpassCamera();
+        vCamera = self.mImarisApplication.GetSurpassCamera()
         if vCamera is None:
             return None
 
         # Get the camera position quaternion
-        q = vCamera.GetOrientationQuaternion();
+        q = vCamera.GetOrientationQuaternion()
 
         # Aliases
-        X = q[0];
-        Y = q[1];
-        Z = q[2];
-        W = q[3];
+        X = q[0]
+        Y = q[1]
+        Z = q[2]
+        W = q[3]
 
         # Make sure the quaternion is a unit quaternion
         n2 = X**2 + Y**2 + Z**2 + W**2
@@ -884,7 +885,7 @@ The sizes tuple is: ``(sizeX, sizeY, sizeZ, sizeC, sizeT)``, where:
         R = np.zeros((4, 4), dtype=np.float32)
         x2 = X + X
         y2 = Y + Y
-        z2 = Z + Z;
+        z2 = Z + Z
         xx = X * x2
         xy = X * y2
         xz = X * z2
@@ -893,7 +894,7 @@ The sizes tuple is: ``(sizeX, sizeY, sizeZ, sizeC, sizeT)``, where:
         zz = Z * z2
         wx = W * x2
         wy = W * y2
-        wz = W * z2;
+        wz = W * z2
 
         R[0, 0] = 1.0 - (yy + zz)
         R[0, 1] = xy - wz
@@ -1779,7 +1780,7 @@ If a dataset exists, the X, Y, and Z dimensions must match the ones of the stack
         t = time.time()
         timeout = t + 10
         while t < timeout:
-            if self._isImarisServerIceRunning() == True:
+            if self._isImarisServerIceRunning():
                 return True
             # Update the elapsed time
             t = time.time()
