@@ -15,19 +15,20 @@ import sys, os
 sys.path.append('../pIceImarisConnector');
 
 # Workaround to make readthedocs.org build pIceImarisConnector
-try:
+if os.environ.get('READTHEDOCS', None) == 'True':
+    try:
     
-    # This is required on readthedocs.org to be able to import numpy
-    import mock
+        # This is required on readthedocs.org to be able to import numpy
+        import mock
     
-    MOCK_MODULES = ['numpy']
-    for mod_name in MOCK_MODULES:
-        sys.modules[mod_name] = mock.Mock()
+        MOCK_MODULES = ['numpy']
+        for mod_name in MOCK_MODULES:
+            sys.modules[mod_name] = mock.Mock()
         
-except:
+    except:
     
-    # We are not on readthedocs.org
-    pass
+        # We are not on readthedocs.org
+        pass
 
 
 # If extensions (or modules to document with autodoc) are in another directory,
