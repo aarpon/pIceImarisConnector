@@ -44,7 +44,7 @@ returns the currently selected object in the Imaris surpass scene.
     """
 
     # pIceImarisConnector version
-    _mVersion = "0.3.0"
+    _mVersion = "0.3.1"
 
     # Imaris-related paths
     _mImarisPath = ""
@@ -161,6 +161,27 @@ imarisApplication : (optional) if omitted (or set to None), a
 
         # Case 1: we got the ID from Imaris
         elif isinstance(imarisApplication, int):
+
+            # Check if the application is registered
+            server = self._mImarisLib.GetServer()
+            if server is None:
+                raise Exception('Could not connect to Imaris Server!')
+
+            nApps = server.GetNumberOfObjects()
+            if nApps == 0:
+                raise Exception('There are no registered Imaris applications!')
+
+            # Does the passed ID match the ID of any of the
+            # registered (running) Imaris application?
+            found = False
+            for i in range(nApps):
+                if server.GetObjectID(i) == imarisApplication:
+                    found = True
+                    break
+
+            if not found:
+                raise Exception('Invalid Imaris application ID!');
+         
             # Get the application corresponding to the passed ID
             self._mImarisApplication = self._mImarisLib.GetApplication(imarisApplication)
 

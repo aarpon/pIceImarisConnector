@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 setup(name='pIceImarisConnector',
-      version='0.3.0',
+      version='0.3.1',
       author='Aaron Ponti',
       author_email='aaron.ponti@bsse.ethz.ch',
       url='http://www.scs2.net/next/index.php?id=110',
@@ -13,7 +13,7 @@ setup(name='pIceImarisConnector',
       provides=['pIceImarisConnector'],
       keywords='Imaris ImarisXT python Ice',
       license='GPL2.0',
-      classifiers=['Development Status :: 4 - Beta',
+      classifiers=['Development Status :: 5 - Production/Stable',
                    'Intended Audience :: Developers',
                    'Natural Language :: English',
                    'Operating System :: MacOS :: MacOS X',
@@ -22,4 +22,5 @@ setup(name='pIceImarisConnector',
                    'License :: OSI Approved :: GNU General Public License v2 (GPLv2)',
                    'Topic :: Scientific/Engineering'
                   ],
+      requires=['numpy']
      )
