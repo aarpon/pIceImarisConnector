@@ -137,10 +137,10 @@ if __name__ == '__main__':
     # These are the expected spot coordinates
     print('Check spot coordinates and conversions units<->pixels...')
     POS = [
-           [18.5396,    1.4178,    8.7341],
-           [39.6139,   14.8819,    9.0352],
-           [35.1155,    9.4574,    9.0352],
-           [12.3907,   21.6221,   11.7459]]
+        [18.5396,    1.4178,    8.7341],
+        [39.6139,   14.8819,    9.0352],
+        [35.1155,    9.4574,    9.0352],
+        [12.3907,   21.6221,   11.7459]]
 
     assert(np.all(abs(np.array(pos) - np.array(POS)) < 1e-4))
 
@@ -359,7 +359,7 @@ if __name__ == '__main__':
     # Check transferring volume data
     # =========================================================================
     print('Check two-way data volume transfer...')
-    data = np.empty((2, 255, 255), dtype=np.uint8)
+    data = np.zeros((2, 255, 255), dtype=np.uint8)
     x = np.linspace(1, 255, 255)
     y = np.linspace(1, 255, 255)
     xv, yv = np.meshgrid(x, y)
@@ -381,7 +381,66 @@ if __name__ == '__main__':
     print('Make sure Imaris is closed...')
     assert(conn.isAlive() == False)
 
+    # Start Imaris
+    # =========================================================================
+    print('Start Imaris...')
+    assert(conn.startImaris() == 1)
+
+    # Open a file
+    # =========================================================================
+    print('Load file...')
+    currFilePath = os.path.realpath(__file__)
+    currPath = os.path.dirname(currFilePath)
+    filename = os.path.join(currPath, 'SwimmingAlgae.ims')
+    conn.mImarisApplication.FileOpen(filename, '')
+
+    # Get the Spots object
+    iSpots = conn.getAllSurpassChildren(False, 'Spots')
+    assert (len(iSpots) == 1)
+
+    # Get the tracks
+    [tracks, startTimes] = conn.getTracks(iSpots[0])
+
+    # Compare
+    TRACKS_0 = np.array([
+        [257.0569, 158.0890, 0.5000],
+        [258.2019, 160.3281, 0.5000],
+        [258.6424, 161.7611, 0.5000],
+        [257.0615, 162.8971, 0.5000],
+        [254.7822, 163.0764, 0.5000],
+        [252.9628, 162.2183, 0.5000],
+        [251.9430, 160.6685, 0.5000],
+        [252.0315, 159.2506, 0.5000],
+        [252.5433, 157.9091, 0.5000],
+        [254.0479, 156.8815, 0.5000],
+        [255.7876, 156.3626, 0.5000],
+        [257.4710, 156.3670, 0.5000]])
+
+    TRACKS_1 = np.array([
+        [245.0000, 125.4513, 0.5000],
+        [248.0088, 127.2925, 0.5000],
+        [251.1482, 128.9230, 0.5000],
+        [254.2048, 130.3164, 0.5000],
+        [257.1553, 132.4333, 0.5000],
+        [259.4069, 134.9209, 0.5000],
+        [261.9462, 137.7944, 0.5000],
+        [264.0524, 140.6828, 0.5000]])
+
+    TRACKS_2 = np.array([
+        [284.0000, 128.0667, 0.5000],
+        [281.3237, 130.0378, 0.5000],
+        [278.5699, 131.9248, 0.5000],
+        [275.9659, 133.9807, 0.5000]])
+
+    # Check spot coordinates
+    assert (np.all(abs(tracks[0] - TRACKS_0) < 1e-4))
+    assert (np.all(abs(tracks[1] - TRACKS_1) < 1e-4))
+    assert (np.all(abs(tracks[2] - TRACKS_2) < 1e-4))
+
+    # Check start time points
+    assert (np.all(startTimes == np.array([0, 4, 8])))
+
     # All done
     # =========================================================================
     print('')
-    print('All test succesfully run.')
+    print('All test successfully run.')

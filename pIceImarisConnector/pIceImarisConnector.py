@@ -45,7 +45,7 @@ returns the currently selected object in the Imaris surpass scene.
     """
 
     # pIceImarisConnector version
-    _mVersion = "0.3.1"
+    _mVersion = "0.4.0 alpha"
 
     # Imaris-related paths
     _mImarisPath = ""
@@ -879,10 +879,10 @@ The sizes tuple is: ``(sizeX, sizeY, sizeZ, sizeC, sizeT)``, where:
         n2 = X**2 + Y**2 + Z**2 + W**2
         if abs(n2 - 1) > 1e-4:
             n = math.sqrt(n2)
-            X = X / n
-            Y = Y / n
-            Z = Z / n
-            W = W / n
+            X /= n
+            Y /= n
+            Z /= n
+            W /= n
 
         # Calculate the rotation matrix R from the quaternion
         R = np.zeros((4, 4), dtype=np.float32)
@@ -918,13 +918,13 @@ The sizes tuple is: ``(sizeX, sizeY, sizeZ, sizeC, sizeT)``, where:
         isI = np.all(abs(R - T) < 1e-4)
 
         # Return R and isI
-        return (R, isI)
+        return R, isI
 
     def getSurpassSelection(self, typeFilter=None):
         """Returns the auto-cast current surpass selection. If the 'typeFilter' parameter is specified, the object class is checked against it and None is returned instead of the object if the type does not match.
 
-:param typeFilter: (optional, default False) Specifies the expected object class. If the selected object is not of the specified type, the function will return None instead. Type is one of:
-:type typeFilter: Boolean
+:param typeFilter: (optional, default None) Specifies the expected object class. If the selected object is not of the specified type, the function will return None instead. Type is one of:
+:type typeFilter: String
 
 * 'Cells'
 * 'ClippingPlane'
@@ -977,6 +977,67 @@ The sizes tuple is: ``(sizeX, sizeY, sizeZ, sizeC, sizeT)``, where:
 
         # Return the object
         return selection
+
+    def getTracks(self, iSpots=None):
+        """Returns the tracks associated to an iSpots object. If no iSpots objects is passed as argument, the function will try with the currently selected object in the Surpass Scene. If this is not an iSpots object, an empty result set will be returned.
+
+:param iSpots (optional, default None) A Spots object. If iSpots is None, the function will try with the currently selected object in the Surpass Scene.
+:type Imaris::IDataSet
+
+:return: tuple containing an array of tracks and and array of starting time indices for each track.
+:rtype: tuple
+
+The tracks array will be empty if no tracks exist for the iSpots object or if the argument is not an iSpots object. Each track is in the form [x y z]n, were n is the length of the track.
+        """
+
+        # Initialize tracks and timeIndices
+        tracks = []
+        startTimes = []
+
+        # Do we have an open connection?
+        if not self.isAlive():
+            return tracks, startTimes
+
+        # Check the input parameter
+        if iSpots is None:
+
+            # Try to get the currently selected spots object in the Surpass scene
+            iSpots = self.getSurpassSelection('Spots')
+
+        # Check that we have a valid ISpots object
+        try:
+            if not self.mImarisApplication.GetFactory().IsSpots(iSpots):
+                raise Exception("Spots object required.")
+        except:
+            raise Exception("Spots object required.")
+
+        # Now extract the tracks
+
+        # Get the IDs of the tracks
+        ids = np.array(iSpots.GetTrackIds())
+        uids = np.unique(iSpots.GetTrackIds())
+        nTracks = uids.size
+
+        # Get all spot positions and the track edges
+        positions  = np.array(iSpots.GetPositionsXYZ())
+        timeIndices = np.array(iSpots.GetIndicesT())
+        trackEdges = np.array(iSpots.GetTrackEdges())
+
+        # Now extract one track after the other and store them into a cell array
+        tracks = []
+        startTimes = []
+
+        for i in range(nTracks):
+
+            # Get the positions and edges for current track (id)
+            edges = trackEdges[ids == uids[i], :]
+            edges = np.unique(edges)
+
+            # Extract and store the track and the initial time index
+            tracks.append(positions[edges, :])
+            startTimes.append(timeIndices[edges[0]])
+
+        return tracks, startTimes
 
     def getVoxelSizes(self):
         """Returns the X, Y, and Z voxel sizes of the dataset.
