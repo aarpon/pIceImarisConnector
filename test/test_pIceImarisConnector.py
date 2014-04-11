@@ -52,14 +52,14 @@ if __name__ == '__main__':
     # Start Imaris
     # =========================================================================
     print('Start Imaris...')
-    assert(conn.startImaris() == True)
+    assert(conn.startImaris() is True)
 
     # Test that the connection is valid
     # =========================================================================
     print('Get version...')
     assert(conn.getImarisVersionAsInteger() > 0)
     print('Test if connection is alive...')
-    assert(conn.isAlive() == True)
+    assert(conn.isAlive() is True)
 
     # Open a file
     # =======================================================s==================
@@ -129,7 +129,7 @@ if __name__ == '__main__':
     child = conn.getAllSurpassChildren(False, 'Spots')
     assert(len(child) == 1)
     spot = child[0]
-    assert(callable(getattr(spot, 'GetPositionsXYZ')) == True)
+    assert(callable(getattr(spot, 'GetPositionsXYZ')) is True)
 
     # Get the coordinates
     pos = spot.GetPositionsXYZ()
@@ -439,6 +439,16 @@ if __name__ == '__main__':
 
     # Check start time points
     assert (np.all(startTimes == np.array([0, 4, 8])))
+
+    # Close Imaris
+    # =========================================================================
+    print('Close Imaris...')
+    assert(conn.closeImaris(True) is True)
+
+    # Make sure Imaris is closed
+    # =========================================================================
+    print('Make sure Imaris is closed...')
+    assert(conn.isAlive() is False)
 
     # All done
     # =========================================================================

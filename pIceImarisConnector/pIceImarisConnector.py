@@ -83,7 +83,7 @@ instantiated and returned.
         """
 
         if args and args[0] is not None and \
-                type(args[0]).__name__ == "pIceImarisConnector":
+                        type(args[0]).__name__ == "pIceImarisConnector":
             # Reusing passed object
             return args[0]
         else:
@@ -116,7 +116,7 @@ imarisApplication : (optional) if omitted (or set to None), a
         # returnig a reference to the passed object instead of creating
         # a new one.
         if imarisApplication is not None and \
-                type(imarisApplication).__name__ == "pIceImarisConnector":
+                        type(imarisApplication).__name__ == "pIceImarisConnector":
             return
 
         # Store the required paths
@@ -210,7 +210,7 @@ IceImarisConnector object is deleted.
 
         if self._mImarisApplication is None:
             return "pIceImarisConnector: not connected to an Imaris " \
-                  "instance yet."
+                   "instance yet."
         else:
             return "pIceImarisConnector: connected to Imaris."
 
@@ -443,20 +443,20 @@ The function takes care of adding the created dataset to Imaris.
 
         # Data type
         if datatype == np.uint8 or \
-        str(datatype) == 'uint8' or \
-        str(datatype) == 'eTypeUInt8':
+                        str(datatype) == 'uint8' or \
+                        str(datatype) == 'eTypeUInt8':
 
             imarisDataType = ImarisTType.eTypeUInt8
 
         elif datatype == np.uint16 or \
-        str(datatype) == 'uint16' or \
-        str(datatype) == 'eTypeUInt16':
+                        str(datatype) == 'uint16' or \
+                        str(datatype) == 'eTypeUInt16':
 
             imarisDataType = ImarisTType.eTypeUInt16
 
         elif datatype == np.float32 or \
-        str(datatype) == 'float' or \
-        str(datatype) == 'eTypeFloat':
+                        str(datatype) == 'float' or \
+                        str(datatype) == 'eTypeFloat':
 
             imarisDataType = ImarisTType.eTypeFloat
 
@@ -554,7 +554,7 @@ The function takes care of adding the created dataset to Imaris.
         return children
 
     def getDataSubVolume(self, x0, y0, z0, channel,
-        timepoint, dX, dY, dZ, iDataSet=None):
+                         timepoint, dX, dY, dZ, iDataSet=None):
         """Returns a data subvolume from Imaris.
 
 :param x0: x coordinate of the top-left vertex of the subvolume to be returned.
@@ -652,11 +652,11 @@ subVolume is identical to subStack
         elif imarisDataType == "eTypeUInt16":
             arr = np.array(iDataSet.GetDataSubVolumeAs1DArrayShorts( \
                 x0, y0, z0, channel, timepoint, dX, dY, dZ), \
-                dtype=np.uint16)
+                           dtype=np.uint16)
         elif imarisDataType == "eTypeFloat":
             arr = np.array(iDataSet.GetDataSubVolumeAs1DArrayFloats( \
                 x0, y0, z0, channel, timepoint, dX, dY, dZ), \
-                dtype=np.float32)
+                           dtype=np.float32)
         else:
             raise Exception("Bad value for iDataSet::getType().")
 
@@ -713,10 +713,10 @@ Implementation detail: this function gets the volume as a 1D array and reshapes 
             arr = np.frombuffer(arr.data, dtype=np.uint8)
         elif imarisDataType == "eTypeUInt16":
             arr = np.array(iDataSet.GetDataVolumeAs1DArrayShorts(channel, timepoint),
-                              dtype=np.uint16)
+                           dtype=np.uint16)
         elif imarisDataType == "eTypeFloat":
             arr = np.array(iDataSet.GetDataVolumeAs1DArrayFloats(channel, timepoint),
-                              dtype=np.float32)
+                           dtype=np.float32)
         else:
             raise Exception("Bad value for iDataSet::getType().")
 
@@ -876,7 +876,7 @@ The sizes tuple is: ``(sizeX, sizeY, sizeZ, sizeC, sizeT)``, where:
         W = q[3]
 
         # Make sure the quaternion is a unit quaternion
-        n2 = X**2 + Y**2 + Z**2 + W**2
+        n2 = X ** 2 + Y ** 2 + Z ** 2 + W ** 2
         if abs(n2 - 1) > 1e-4:
             n = math.sqrt(n2)
             X /= n
@@ -978,16 +978,16 @@ The sizes tuple is: ``(sizeX, sizeY, sizeZ, sizeC, sizeT)``, where:
         # Return the object
         return selection
 
-    def getTracks(self, iSpots=None):
-        """Returns the tracks associated to an iSpots object. If no iSpots objects is passed as argument, the function will try with the currently selected object in the Surpass Scene. If this is not an iSpots object, an empty result set will be returned.
+    def getTracks(self, iObject=None):
+        """This method returns the tracks associated to an ISpots or an ISurfaces object. If no object is passed as argument, the function will try with the currently selected object in the Surpass Scene. If this is not an ISpots nor an ISurfaces object, an empty result set will be returned.
 
-:param iSpots (optional, default None) A Spots object. If iSpots is None, the function will try with the currently selected object in the Surpass Scene.
-:type Imaris::IDataSet
+:param iSpots (optional, default None) (optional) either an ISpots or an ISurfaces object. If not passed, the function will try with the currently selected object in the Surpass Scene.
+:type Imaris::IDataItem
 
 :return: tuple containing an array of tracks and and array of starting time indices for each track.
 :rtype: tuple
 
-The tracks array will be empty if no tracks exist for the iSpots object or if the argument is not an iSpots object. Each track is in the form [x y z]n, were n is the length of the track.
+The tracks array will be empty if no tracks exist for the object or if the argument is not an ISpots or an ISurfaces object. Each track is in the form [x y z]n, were n is the length of the track.
         """
 
         # Initialize tracks and timeIndices
@@ -999,36 +999,62 @@ The tracks array will be empty if no tracks exist for the iSpots object or if th
             return tracks, startTimes
 
         # Check the input parameter
-        if iSpots is None:
+        if iObject is None:
 
-            # Try to get the currently selected spots object in the Surpass scene
-            iSpots = self.getSurpassSelection('Spots')
+            # Try to get the currently selected object in the Surpass scene
+            iObject = self.mImarisApplication.GetSurpassSelection()
+            if iObject is None:
+                raise Exception("If no object is passed to the function, then either an ISpots or an ISurfaces " +
+                                "object must be selected in ")
 
-        # Check that we have a valid ISpots object
-        try:
-            if not self.mImarisApplication.GetFactory().IsSpots(iSpots):
-                raise Exception("Spots object required.")
-        except:
-            raise Exception("Spots object required.")
+        # Check the type
+        factory = self.mImarisApplication.GetFactory()
+
+        if factory.IsSpots(iObject) or factory.IsSurfaces(iObject):
+            iObject = self.autocast(iObject)
+        else:
+            raise Exception("Expected ISpots or ISurfaces object.")
 
         # Now extract the tracks
 
         # Get the IDs of the tracks
-        ids = np.array(iSpots.GetTrackIds())
-        uids = np.unique(iSpots.GetTrackIds())
+        ids = np.array(iObject.GetTrackIds())
+        uids = np.unique(iObject.GetTrackIds())
         nTracks = uids.size
 
         # Get all spot positions and the track edges
-        positions  = np.array(iSpots.GetPositionsXYZ())
-        timeIndices = np.array(iSpots.GetIndicesT())
-        trackEdges = np.array(iSpots.GetTrackEdges())
+
+        # Get the positions
+        if factory.IsSpots(iObject):
+            # This is an ISPots object. We can get all positions in one shot.
+            positions = np.array(iObject.GetPositionsXYZ())
+        else:
+            # This is an ISurfaces object. We query each contained surface for its
+            # center of mass.
+            nSurfaces = iObject.GetNumberOfSurfaces()
+            positions = np.zeros((nSurfaces, 3))
+            for i in range(nSurfaces):
+                positions[i, :] = iObject.GetCenterOfMass(i)[0]
+
+        # Get the time indices
+        if factory.IsSpots(iObject):
+            # This is an ISPots object. We can get all time indices in one shot.
+            timeIndices  = iObject.GetIndicesT()
+        else:
+            # This is an ISurfaces object. We query each contained surface for its
+            # center of mass.
+            timeIndices = np.zeros(nSurfaces)
+            for i in range(nSurfaces):
+                timeIndices[i] = iObject.GetTimeIndex(i)
+
+        # Get the track edges
+        trackEdges = np.array(iObject.GetTrackEdges())
 
         # Now extract one track after the other and store them into a cell array
         tracks = []
         startTimes = []
 
         for i in range(nTracks):
-
             # Get the positions and edges for current track (id)
             edges = trackEdges[ids == uids[i], :]
             edges = np.unique(edges)
@@ -1056,17 +1082,17 @@ The voxelsize tuple is: ``(voxelSizeX, voxelSizeY, voxelSizeZ)``, where:
         # Voxel size X
         vX = (self._mImarisApplication.GetDataSet().GetExtendMaxX() - \
               self._mImarisApplication.GetDataSet().GetExtendMinX()) / \
-              self._mImarisApplication.GetDataSet().GetSizeX()
+             self._mImarisApplication.GetDataSet().GetSizeX()
 
         # Voxel size Y
         vY = (self._mImarisApplication.GetDataSet().GetExtendMaxY() - \
               self._mImarisApplication.GetDataSet().GetExtendMinY()) / \
-              self._mImarisApplication.GetDataSet().GetSizeY()
+             self._mImarisApplication.GetDataSet().GetSizeY()
 
         # Voxel size Z
         vZ = (self._mImarisApplication.GetDataSet().GetExtendMaxZ() - \
               self._mImarisApplication.GetDataSet().GetExtendMinZ()) / \
-              self._mImarisApplication.GetDataSet().GetSizeZ()
+             self._mImarisApplication.GetDataSet().GetSizeZ()
 
         # Wrap the voxel sizes into a tuple
         return (vX, vY, vZ)
@@ -1123,7 +1149,7 @@ The voxelsize tuple is: ``(voxelSizeX, voxelSizeY, voxelSizeZ)``, where:
 
         # Check the input parameter uPos
         if not isinstance(uPos, list) and \
-            not isinstance(uPos, np.ndarray):
+                not isinstance(uPos, np.ndarray):
             raise TypeError(errMsg)
 
         # If list, convert to Numpy array
@@ -1173,7 +1199,7 @@ The voxelsize tuple is: ``(voxelSizeX, voxelSizeY, voxelSizeZ)``, where:
 
         # Check the input parameter vPos
         if not isinstance(vPos, list) and \
-            not isinstance(vPos, np.ndarray):
+                not isinstance(vPos, np.ndarray):
             raise TypeError(errMsg)
 
         # If list, convert to Numpy array
@@ -1235,7 +1261,7 @@ In this example, current color of a Spots object is obtained from Imaris and pus
         if isinstance(rgbaScalar, int):
             rgbaScalar = np.array(rgbaScalar, dtype=np.uint32)
         elif isinstance(rgbaScalar, np.ndarray) and \
-            rgbaScalar.dtype == np.uint32:
+                        rgbaScalar.dtype == np.uint32:
             pass
         else:
             raise TypeError('Expected integer of Numpy scalar (uint32).')
@@ -1280,7 +1306,7 @@ The mapRgbaVectorToScalar() method will transparently work around this problem f
 
         # Check rgbaVector
         if rgbaVector.ndim != 1 or rgbaVector.shape[0] != 4 or \
-        np.any(np.logical_or(rgbaVector < 0, rgbaVector > 1)):
+                np.any(np.logical_or(rgbaVector < 0, rgbaVector > 1)):
             raise ValueError("rgbaVector must be a vector with 4 elements in " +
                              "the 0 .. 1 range.")
 
@@ -1456,7 +1482,7 @@ If a dataset exists, the X, Y, and Z dimensions must match the ones of the stack
                 tmp = "/Applications"
             else:
                 raise OSError("pIceImarisConnector only works " + \
-                                  "on Windows and Mac OS X.")
+                              "on Windows and Mac OS X.")
 
             # Check that the folder exist
             if os.path.isdir(tmp):
@@ -1543,8 +1569,8 @@ If a dataset exists, the X, Y, and Z dimensions must match the ones of the stack
             # Make sure to ignore the Scene Viewer, the File Converter
             # and the 32bit version on 64 bit machines
             if "ImarisSceneViewer" in d or \
-                "FileConverter" in d or \
-                "32bit" in d:
+                            "FileConverter" in d or \
+                            "32bit" in d:
                 continue
 
             # Get version information
