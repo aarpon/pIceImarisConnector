@@ -135,8 +135,9 @@ imarisApplication : (optional) if omitted (or set to None), a
         # Instantiate and store the ImarisLib object
         self._mImarisLib = ImarisLib.ImarisLib()
 
-        # Assign a random id
-        self._mImarisObjectID = random.randint(0, 100000)
+        # Assign a random id. We reserve the first 1000 to manually
+        # started Imaris instances.
+        self._mImarisObjectID = 1000 + random.randint(0, 100000)
 
         # Now we check the (optional) input parameter imarisApplication.
         # We have three remaining cases (the first one we took care of
@@ -185,7 +186,11 @@ imarisApplication : (optional) if omitted (or set to None), a
             if self._mImarisApplication is None:
                 raise Exception('Could not connect to Imaris!')
 
+            # We also update the ID
+            self._mImarisObjectID = imarisApplication
+
         # Case 2: we get an ImarisApplication object
+        # We leave the ID to the randomly generated one.
         elif type(imarisApplication).__name__ == "IApplicationPrx":
             self._mImarisApplication = imarisApplication
 
