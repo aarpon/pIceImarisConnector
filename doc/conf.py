@@ -14,30 +14,64 @@
 import sys, os
 sys.path.append('../pIceImarisConnector');
 
-class Mock(object):
+if sys.version_info [0] < 3:
 
-    __all__ = []
+    class Mock(object):
 
-    def __init__(self, *args, **kwargs):
-        pass
+        __all__ = []
 
-    def __call__(self, *args, **kwargs):
-        return Mock()
+        def __init__(self, *args, **kwargs):
+            pass
 
-    @classmethod
-    def __getattr__(cls, name):
-        if name in ('__file__', '__path__'):
-            return '/dev/null'
-        elif name[0] == name[0].upper():
-            mockType = type(name, (), {})
-            mockType.__module__ = __name__
-            return mockType
-        else:
+        def __call__(self, *args, **kwargs):
             return Mock()
 
-MOCK_MODULES = ['numpy']
-for mod_name in MOCK_MODULES:
-    sys.modules[mod_name] = Mock()
+        @classmethod
+        def __getattr__(cls, name):
+            if name in ('__file__', '__path__'):
+                return '/dev/null'
+            elif name[0] == name[0].upper():
+                mockType = type(name, (), {})
+                mockType.__module__ = __name__
+                return mockType
+            else:
+                return Mock()
+
+    MOCK_MODULES = ['numpy']
+    for mod_name in MOCK_MODULES:
+        sys.modules[mod_name] = Mock()
+
+else:
+    
+    # RTD
+    
+    from unittest.mock import MagicMock
+
+    class Mock(MagicMock):
+        @classmethod
+        def __getattr__(cls, name):
+                return Mock()
+
+    MOCK_MODULES = ['numpy']
+    sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+
+# Try importing the sphinx readthedocs.org theme
+# Install it with:
+#    (sudo) pip install sphinx_rtd_theme
+
+found_html_theme = 'default'
+found_html_theme_path = []
+if os.environ.get('USE_LOCAL_SPHINX_RTD_THEME') is not None:
+    try:
+        import sphinx_rtd_theme
+        found_html_theme = 'sphinx_rtd_theme'
+        found_html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+        print("Using local sphinx RTD theme.")
+    except:
+        print("Could not import sphinx RTD theme. Using default.")
+        pass
+else:
+    print("Using default theme.")
 
 
 # If extensions (or modules to document with autodoc) are in another directory,
