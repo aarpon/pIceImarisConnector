@@ -15,7 +15,7 @@ class pIceImarisConnector(object):
     """pIceImarisConnector is a simple Python class that eases communication
 between Bitplane Imaris and Python using the Imaris XT interface.
 
-*Copyright Aaron Ponti, 2013.*
+*Copyright Aaron Ponti, 2013 - 2015.*
 
 :param imarisApplication: (optional) if omitted, a pIceImarisConnector object is created that is not connected to any Imaris instance.
 
@@ -749,6 +749,10 @@ The extends tuple is: ``(minX, minY, minZ, maxX, maxY, maxZ)``, where:
 
         """
 
+        # Do we have a dataset?
+        if self._mImarisApplication.GetDataSet() is None:
+            return None
+
         # Wrap the extends into a tuple
         return (self._mImarisApplication.GetDataSet().GetExtendMinX(),
                 self._mImarisApplication.GetDataSet().GetExtendMaxY(),
@@ -817,6 +821,10 @@ The conversion is performed as follows: ``v = 100000 * Major + 10000 * Minor + 1
 
         # Alias
         iDataSet = self.mImarisApplication.GetDataSet()
+        
+        # Do we have a dataset?
+        if iDataSet is None:
+            return None
 
         # Get the dataset class
         imarisDataType = str(iDataSet.GetType())
