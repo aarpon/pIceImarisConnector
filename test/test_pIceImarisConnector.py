@@ -214,6 +214,11 @@ if __name__ == '__main__':
     print('Get the data volume...')
     stack = conn.getDataVolume(0, 0)
 
+    # Get and check a data slice
+    print('Get and check a data slice...');
+    slice = conn.getDataSlice(34, 0, 0);
+    assert(np.all(stack[34, :, :] == slice))
+
     print('Check the data volume type...')
     assert(stack.dtype == conn.getNumpyDatatype())
 
@@ -230,6 +235,11 @@ if __name__ == '__main__':
     # =========================================================================
     print('Get the data volume by explicitly passing an iDataSet object...')
     stack = conn.getDataVolume(0, 0, conn.mImarisApplication.GetDataSet())
+
+    # Get a slice
+    print('Get and check a data slice by explicitly passing an iDataSet object...');
+    slice = conn.getDataSlice(34, 0, 0, conn.mImarisApplication.GetDataSet());
+    assert(np.all(stack[34, :, :] == slice))
 
     print('Check the data volume type...')
     assert(stack.dtype == conn.getNumpyDatatype())
@@ -344,6 +354,12 @@ if __name__ == '__main__':
     stack = np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], \
             [10, 11, 12]], [[13, 14, 15], [16, 17, 18]]], np.uint16)
     conn.setDataVolume(stack, 0, 0)
+    
+    # Test retrieving volume and slice for a non 8-bit dataset
+    print('Test retrieving volume and slice for a non 8-bit dataset...')
+    volume16 = conn.getDataVolume(0, 0)
+    slice16 = conn.getDataSlice(1, 0, 0)
+    assert(np.all(volume16[1, :, :] == slice16))
 
     # Create a dataset
     # =========================================================================

@@ -337,18 +337,23 @@ object and resets the mImarisApplication property.
         nChannels = sz[3]
         nTimepoints = sz[4]
 
-        # Check the passed indices are valid
-        channelIndices = np.array(channelIndices)
-        if np.any(np.logical_or(channelIndices < 0, channelIndices > (nChannels - 1))):
+        # Make sure to have a valid array
+        npChannelIndices = np.array(channelIndices)        
+        if npChannelIndices.ndim == 0:
+            npChannelIndices = np.array([channelIndices])
+
+        # Check the passed indices are within bounds
+        if np.any(np.logical_or(npChannelIndices < 0, npChannelIndices > (nChannels - 1))):
             ValueError("channelIndices is out of bounds.")
 
         # Collect the channel names
         channelNames = []
         for i in range(nChannels):
             channelNames.append(iDataSet.GetChannelName(i))
+        print(channelNames)
 
         # Copy the channels
-        for c in range(channelIndices.size):
+        for c in range(npChannelIndices.size):
             
             # Add a channel
             nChannels = nChannels + 1
@@ -358,17 +363,17 @@ object and resets the mImarisApplication property.
             newChannelIndex = nChannels - 1
 
             # Set the new channel name
-            newChannelName = 'Copy of ' + channelNames[channelIndices[c]]
+            newChannelName = 'Copy of ' + channelNames[npChannelIndices[c]]
             iDataSet.SetChannelName(newChannelIndex, newChannelName)
             
             # Set the new channel color
             iDataSet.SetChannelColorRGBA(newChannelIndex, \
-                iDataSet.GetChannelColorRGBA(channelIndices[c]))
+                iDataSet.GetChannelColorRGBA(npChannelIndices[c]))
             
             for t in range(nTimepoints):
                 
                 # Get the stack
-                stack = self.getDataVolume(channelIndices[c], t)
+                stack = self.getDataVolume(npChannelIndices[c], t)
                 
                 # Set the stack
                 self.setDataVolume(stack, newChannelIndex, t)
@@ -554,6 +559,72 @@ The function takes care of adding the created dataset to Imaris.
         """Displays the string representation of the pIceImarisConnector object."""
 
         print(self.__str__())
+
+    def getDataSlice(self, plane, channel, timepoint, iDataSet=None):
+        """Returns a data slice from Imaris.
+
+:param plane: plane index.
+:type plane: int
+:param channel: channel index.
+:type channel: int
+:param timepoint: timepoint index.
+:type timepoint: int
+:param iDataSet: (optional) get the data slice from the passed IDataSet object instead of current one; if omitted, current dataset (i.e. ``conn.mImarisApplication.GetDataSet()``) will be used.
+:type iDataSet: Imaris::IDataSet
+
+:return:  data slice (2D Numpy array).
+:rtype: Numpy array with dtype being one of ``np.uint8``, ``np.uint16``, ``np.float32``.
+
+        """
+
+        if not self.isAlive():
+            return None
+
+        if iDataSet is None:
+            iDataSet = self.mImarisApplication.GetDataSet()
+        else:
+            # Is the passed argument a valid iDataSet?
+            if not self.mImarisApplication.GetFactory().IsDataSet(iDataSet):
+                raise Exception("Invalid IDataSet object.")
+
+        # Get sizes
+        (sizeX, sizeY, sizeZ, sizeC, sizeT) = self.getSizes()
+
+        if iDataSet is None or sizeX == 0:
+            return None
+
+        # Check that the requested plane, channel and timepoint exist
+        if plane < 0 or plane > sizeZ - 1:
+            raise Exception("The requested plane index is out of bounds!")
+        if timepoint < 0 or timepoint > sizeT - 1:
+            raise Exception("The requested time index is out of bounds!")        
+        if channel < 0 or channel > sizeC - 1:
+            raise Exception("The requested channel index is out of bounds!")
+        if timepoint < 0 or timepoint > sizeT - 1:
+            raise Exception("The requested time index is out of bounds!")
+
+        # Get the dataset class
+        imarisDataType = str(iDataSet.GetType())
+        if imarisDataType == "eTypeUInt8":
+            # Ice returns uint8 as a string: we must cast. This behavior might
+            # be changed in the future.
+            arr = np.array(iDataSet.GetDataSliceBytes(plane, channel, timepoint))
+            arr = np.frombuffer(arr.data, dtype=np.uint8)
+            arr = np.reshape(arr, (sizeX, sizeY))
+        elif imarisDataType == "eTypeUInt16":
+            arr = np.array(iDataSet.GetDataSliceShorts(plane, channel, timepoint),
+                           dtype=np.uint16)
+        elif imarisDataType == "eTypeFloat":
+            arr = np.array(iDataSet.GetDataSliceFloats(plane, channel, timepoint),
+                           dtype=np.float32)
+        else:
+            raise Exception("Bad value for iDataSet::getType().")
+
+        # Transpose
+        arr = np.transpose(arr)
+
+        # Return
+        return arr
 
     def getAllSurpassChildren(self, recursive, typeFilter=None):
         """Returns all children of the surpass scene recursively. Folders (i.e. IDataContainer objects) may be scanned (recursively) but are not returned. Optionally, the returned objects may be filtered by type.
