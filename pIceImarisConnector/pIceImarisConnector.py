@@ -313,6 +313,66 @@ object and resets the mImarisApplication property.
             print("Error: " + str(sys.exc_info()[1]))
             return False
 
+    def copyChannels(self, channelIndices):
+        """Copies one or more channels.
+
+:param channelIndices: channel indices to be copied.
+:type  channelIndices: list (or scalar)
+
+        """
+        
+        # Check if the connection is still alive
+        if not self.isAlive():
+            return
+
+        # Is there a dataset loaded?
+        iDataSet = self.mImarisApplication.GetDataSet()
+        if iDataSet is None or iDataSet.GetSizeX() == 0:
+            return None
+
+        # Get the dataset sizes
+        sz = self.getSizes()
+        
+        # Some aliases
+        nChannels = sz[3]
+        nTimepoints = sz[4]
+
+        # Check the passed indices are valid
+        channelIndices = np.array(channelIndices)
+        if np.any(np.logical_or(channelIndices < 0, channelIndices > (nChannels - 1))):
+            ValueError("channelIndices is out of bounds.")
+
+        # Collect the channel names
+        channelNames = []
+        for i in range(nChannels):
+            channelNames.append(iDataSet.GetChannelName(i))
+
+        # Copy the channels
+        for c in range(channelIndices.size):
+            
+            # Add a channel
+            nChannels = nChannels + 1
+            iDataSet.SetSizeC(nChannels)
+            
+            # New channel index
+            newChannelIndex = nChannels - 1
+
+            # Set the new channel name
+            newChannelName = 'Copy of ' + channelNames[channelIndices[c]]
+            iDataSet.SetChannelName(newChannelIndex, newChannelName)
+            
+            # Set the new channel color
+            iDataSet.SetChannelColorRGBA(newChannelIndex, \
+                iDataSet.GetChannelColorRGBA(channelIndices[c]))
+            
+            for t in range(nTimepoints):
+                
+                # Get the stack
+                stack = self.getDataVolume(channelIndices[c], t)
+                
+                # Set the stack
+                self.setDataVolume(stack, newChannelIndex, t)
+
     def createAndSetSpots(self, coords, timeIndices, radii, name,
                           color, container=None):
         """Creates Spots and adds them to the Surpass Scene.
