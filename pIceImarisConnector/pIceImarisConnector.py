@@ -302,6 +302,9 @@ object and resets the mImarisApplication property.
         try:
 
             if quiet:
+                iDataSet = self._mImarisApplication.GetDataSet()
+                if iDataSet is not None:
+                    iDataSet.SetModified(False) 
                 self._mImarisApplication.SetVisible(False)
 
             self._mImarisApplication.Quit()
@@ -326,7 +329,7 @@ object and resets the mImarisApplication property.
             return
 
         # Is there a dataset loaded?
-        iDataSet = self.mImarisApplication.GetDataSet()
+        iDataSet = self._mImarisApplication.GetDataSet()
         if iDataSet is None or iDataSet.GetSizeX() == 0:
             return None
 
@@ -581,10 +584,10 @@ The function takes care of adding the created dataset to Imaris.
             return None
 
         if iDataSet is None:
-            iDataSet = self.mImarisApplication.GetDataSet()
+            iDataSet = self._mImarisApplication.GetDataSet()
         else:
             # Is the passed argument a valid iDataSet?
-            if not self.mImarisApplication.GetFactory().IsDataSet(iDataSet):
+            if not self._mImarisApplication.GetFactory().IsDataSet(iDataSet):
                 raise Exception("Invalid IDataSet object.")
 
         # Get sizes
