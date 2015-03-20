@@ -353,7 +353,6 @@ object and resets the mImarisApplication property.
         channelNames = []
         for i in range(nChannels):
             channelNames.append(iDataSet.GetChannelName(i))
-        print(channelNames)
 
         # Copy the channels
         for c in range(npChannelIndices.size):
@@ -562,6 +561,37 @@ The function takes care of adding the created dataset to Imaris.
         """Displays the string representation of the pIceImarisConnector object."""
 
         print(self.__str__())
+
+    def getChannelNames(self):
+        """Returns the channel names.
+
+:return: channel names
+:rtype: list
+        
+        """
+
+        # Initialize output
+        channelNames = [];
+
+        # Is Imaris running?
+        if not self.isAlive():
+            return []
+
+        # Is there a Dataset?
+        iDataSet = self._mImarisApplication.GetDataSet()
+        if iDataSet is None:
+            return []
+
+        # Number of channels
+        nChannels = iDataSet.GetSizeC()
+
+        # Fill the list of channel names
+        for c in range(nChannels):
+            channelNames.append(iDataSet.GetChannelName(c))
+
+        # Return the list of channel names
+        return channelNames
+
 
     def getDataSlice(self, plane, channel, timepoint, iDataSet=None):
         """Returns a data slice from Imaris.

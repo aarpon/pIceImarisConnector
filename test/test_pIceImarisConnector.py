@@ -324,14 +324,14 @@ if __name__ == '__main__':
     conn.copyChannels([0, 1])
     conn.copyChannels([0, 2])
     conn.copyChannels(3)
-    aDataset = conn.mImarisApplication.GetDataSet();
-    assert(aDataset.GetChannelName(0) == 'One')
-    assert(aDataset.GetChannelName(1) == 'Copy of One')
-    assert(aDataset.GetChannelName(2) == 'Copy of One')
-    assert(aDataset.GetChannelName(3) == 'Copy of Copy of One')
-    assert(aDataset.GetChannelName(4) == 'Copy of One')
-    assert(aDataset.GetChannelName(5) == 'Copy of Copy of One')
-    assert(aDataset.GetChannelName(6) == 'Copy of Copy of Copy of One')
+    channelNames = conn.getChannelNames()
+    assert(channelNames[0] == 'One')
+    assert(channelNames[1] == 'Copy of One')
+    assert(channelNames[2] == 'Copy of One')
+    assert(channelNames[3] == 'Copy of Copy of One')
+    assert(channelNames[4] == 'Copy of One')
+    assert(channelNames[5] == 'Copy of Copy of One')
+    assert(channelNames[6] == 'Copy of Copy of Copy of One')
 
     # Close Imaris
     # =========================================================================
