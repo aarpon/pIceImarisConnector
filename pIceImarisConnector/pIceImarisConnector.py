@@ -1595,9 +1595,12 @@ If a dataset exists, the X, Y, and Z dimensions must match the ones of the stack
                 return False
 
             # Try getting the application over a certain time period in case it
-            # takes to long for Imaris to be registered.
+            # takes to long for Imaris to be registered. Since Imaris 8, a
+            # license selection dialog will open that can make the time it takes
+            # for Imaris to be ready to connect quite long. So, we give enough 
+            # time to the user to pick the licenses...
             nAttempts = 0
-            while nAttempts < 200:
+            while nAttempts < 500:
                 try:
                     # A too quick call to mImarisLib.GetApplication() could
                     # potentially throw an exception and leave the _mImarisLib
