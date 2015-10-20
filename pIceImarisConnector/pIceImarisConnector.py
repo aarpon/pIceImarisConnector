@@ -131,6 +131,12 @@ imarisApplication : (optional) if omitted (or set to None), a
         # that the required dynamic libraries are imported correctly.
         os.chdir(self._mImarisPath)
 
+        # Temporarily add Imaris path to system path (if needed)
+        systemPath = os.environ["PATH"]
+        if not self._mImarisPath in systemPath:
+            systemPath = self._mImarisPath + os.pathsep + systemPath
+        os.environ["PATH"] = systemPath
+
         # Add the python lib folder to the python path
         sys.path.append(self._mImarisLibPath)
 
