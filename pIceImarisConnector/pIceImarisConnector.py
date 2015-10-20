@@ -65,6 +65,11 @@ returns the currently selected object in the Imaris surpass scene.
     # Use control
     _mUserControl = False
 
+    # Possible type filters
+    _mPossibleTypeFilters = ["Cells", "ClippingPlane", "Dataset", \
+                             "Filaments", "Frame", "LightSource", \
+                             "MeasurementPoints", "Spots", \
+                             "Surfaces", "SurpassCamera", "Volume"]
     @property
     def version(self):
         return self._mVersion
@@ -304,7 +309,7 @@ object and resets the mImarisApplication property.
             if quiet:
                 iDataSet = self._mImarisApplication.GetDataSet()
                 if iDataSet is not None:
-                    iDataSet.SetModified(False) 
+                    iDataSet.SetModified(False)
                 self._mImarisApplication.SetVisible(False)
 
             self._mImarisApplication.Quit()
@@ -323,7 +328,7 @@ object and resets the mImarisApplication property.
 :type  channelIndices: list (or scalar)
 
         """
-        
+
         # Check if the connection is still alive
         if not self.isAlive():
             return
@@ -335,13 +340,13 @@ object and resets the mImarisApplication property.
 
         # Get the dataset sizes
         sz = self.getSizes()
-        
+
         # Some aliases
         nChannels = sz[3]
         nTimepoints = sz[4]
 
         # Make sure to have a valid array
-        npChannelIndices = np.array(channelIndices)        
+        npChannelIndices = np.array(channelIndices)
         if npChannelIndices.ndim == 0:
             npChannelIndices = np.array([channelIndices])
 
@@ -356,27 +361,27 @@ object and resets the mImarisApplication property.
 
         # Copy the channels
         for c in range(npChannelIndices.size):
-            
+
             # Add a channel
             nChannels = nChannels + 1
             iDataSet.SetSizeC(nChannels)
-            
+
             # New channel index
             newChannelIndex = nChannels - 1
 
             # Set the new channel name
             newChannelName = 'Copy of ' + channelNames[npChannelIndices[c]]
             iDataSet.SetChannelName(newChannelIndex, newChannelName)
-            
+
             # Set the new channel color
             iDataSet.SetChannelColorRGBA(newChannelIndex, \
                 iDataSet.GetChannelColorRGBA(npChannelIndices[c]))
-            
+
             for t in range(nTimepoints):
-                
+
                 # Get the stack
                 stack = self.getDataVolume(npChannelIndices[c], t)
-                
+
                 # Set the stack
                 self.setDataVolume(stack, newChannelIndex, t)
 
@@ -567,7 +572,7 @@ The function takes care of adding the created dataset to Imaris.
 
 :return: channel names
 :rtype: list
-        
+
         """
 
         # Initialize output
@@ -630,7 +635,7 @@ The function takes care of adding the created dataset to Imaris.
         if plane < 0 or plane > sizeZ - 1:
             raise Exception("The requested plane index is out of bounds!")
         if timepoint < 0 or timepoint > sizeT - 1:
-            raise Exception("The requested time index is out of bounds!")        
+            raise Exception("The requested time index is out of bounds!")
         if channel < 0 or channel > sizeC - 1:
             raise Exception("The requested channel index is out of bounds!")
         if timepoint < 0 or timepoint > sizeT - 1:
@@ -690,12 +695,7 @@ The function takes care of adding the created dataset to Imaris.
 
         # Possible filter values
         if typeFilter is not None:
-            possibleTypeFilters = ["Cells", "ClippingPlane", "Dataset", \
-                                   "Frame", "LightSource", \
-                                   "MeasurementPoints", "Spots", \
-                                   "Surfaces", "SurpassCamera", "Volume"]
-
-            if not typeFilter in possibleTypeFilters:
+            if typeFilter not in self._mPossibleTypeFilters:
                 raise ValueError("Invalid value for ''typeFilter''.")
 
         # Check that there is a Surpass Scene and there are children
@@ -985,7 +985,7 @@ The conversion is performed as follows: ``v = 100000 * Major + 10000 * Minor + 1
 
         # Alias
         iDataSet = self.mImarisApplication.GetDataSet()
-        
+
         # Do we have a dataset?
         if iDataSet is None:
             return None
@@ -1597,7 +1597,7 @@ If a dataset exists, the X, Y, and Z dimensions must match the ones of the stack
             # Try getting the application over a certain time period in case it
             # takes to long for Imaris to be registered. Since Imaris 8, a
             # license selection dialog will open that can make the time it takes
-            # for Imaris to be ready to connect quite long. So, we give enough 
+            # for Imaris to be ready to connect quite long. So, we give enough
             # time to the user to pick the licenses...
             nAttempts = 0
             while nAttempts < 500:
@@ -1875,6 +1875,7 @@ If a dataset exists, the X, Y, and Z dimensions must match the ones of the stack
         fileobj.close()
         return ImarisLib
 
+
     def _isImarisServerIceRunning(self):
         """ Checks whether an instance of ImarisServerIce is already running and can be reused. For internal use only!
 
@@ -1934,12 +1935,7 @@ If a dataset exists, the X, Y, and Z dimensions must match the ones of the stack
 
         """
 
-        # Possible type values
-        possibleTypeValues = ["Cells", "ClippingPlane", "Dataset", "Frame", \
-                              "LightSource", "MeasurementPoints", "Spots", \
-                              "Surfaces", "SurpassCamera", "Volume"]
-
-        if not typeValue in possibleTypeValues:
+        if typeValue not in self._mPossibleTypeFilters:
             raise ValueError("Invalid value for typeValue.")
 
         # Get the factory
@@ -1970,6 +1966,7 @@ If a dataset exists, the X, Y, and Z dimensions must match the ones of the stack
             return factory.IsVolume(obj)
         else:
             raise ValueError('Bad value for ''typeValue''.')
+
 
     def _ispc(self):
         """Returns true if pIceImarisConnector is being run on Windows. For internal use only!
