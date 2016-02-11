@@ -70,6 +70,7 @@ returns the currently selected object in the Imaris surpass scene.
                              "Filaments", "Frame", "LightSource", \
                              "MeasurementPoints", "Spots", \
                              "Surfaces", "SurpassCamera", "Volume"]
+
     @property
     def version(self):
         return self._mVersion
@@ -381,10 +382,9 @@ object and resets the mImarisApplication property.
 
             # Set the new channel color
             iDataSet.SetChannelColorRGBA(newChannelIndex, \
-                iDataSet.GetChannelColorRGBA(npChannelIndices[c]))
+                                         iDataSet.GetChannelColorRGBA(npChannelIndices[c]))
 
             for t in range(nTimepoints):
-
                 # Get the stack
                 stack = self.getDataVolume(npChannelIndices[c], t)
 
@@ -602,7 +602,6 @@ The function takes care of adding the created dataset to Imaris.
 
         # Return the list of channel names
         return channelNames
-
 
     def getDataSlice(self, plane, channel, timepoint, iDataSet=None):
         """Returns a data slice from Imaris.
@@ -827,11 +826,11 @@ subVolume is identical to subStack
         elif imarisDataType == "eTypeUInt16":
             arr = np.array(iDataSet.GetDataSubVolumeAs1DArrayShorts( \
                 x0, y0, z0, channel, timepoint, dX, dY, dZ), \
-                           dtype=np.uint16)
+                dtype=np.uint16)
         elif imarisDataType == "eTypeFloat":
             arr = np.array(iDataSet.GetDataSubVolumeAs1DArrayFloats( \
                 x0, y0, z0, channel, timepoint, dX, dY, dZ), \
-                           dtype=np.float32)
+                dtype=np.float32)
         else:
             raise Exception("Bad value for iDataSet::getType().")
 
@@ -1222,7 +1221,7 @@ The tracks array will be empty if no tracks exist for the object or if the argum
         # Get the time indices
         if factory.IsSpots(iObject):
             # This is an ISPots object. We can get all time indices in one shot.
-            timeIndices  = iObject.GetIndicesT()
+            timeIndices = iObject.GetIndicesT()
         else:
             # This is an ISurfaces object. We query each contained surface for its
             # center of mass.
@@ -1557,6 +1556,42 @@ If a dataset exists, the X, Y, and Z dimensions must match the ones of the stack
         else:
             raise Exception("Bad value for iDataSet::getType().")
 
+    def setVoxelSizes(self, voxelSizes):
+        """Sets the X, Y, and Z voxel sizes of the dataset.
+
+It does not move the min extends.
+
+:param voxelSizes: voxel sizes [vX, vY, xZ]
+:type voxelSizes: tuple, list or numpy array
+
+        """
+        if not self.isAlive():
+            return
+
+        # Test the type and shape of voxel size
+        if type(voxelSizes) is not list and \
+                        type(voxelSizes) is not tuple and \
+                        type(voxelSizes) is not np.ndarray:
+            raise Exception("Bad value for voxelSizes.")
+
+        if len(voxelSizes) != 3:
+            raise Exception("voxelSizes must be in the form [vX, vY, vZ].")
+
+        # Get the dataset
+        iDataSet = self._mImarisApplication.GetDataSet()
+
+        if iDataSet is None:
+            return
+
+        # Voxel size X
+        iDataSet.SetExtendMaxX(voxelSizes[0] * iDataSet.GetSizeX() + iDataSet.GetExtendMinX())
+
+        # Voxel size Y
+        iDataSet.SetExtendMaxY(voxelSizes[1] * iDataSet.GetSizeY() + iDataSet.GetExtendMinY())
+
+        # Voxel size Z
+        iDataSet.SetExtendMaxZ(voxelSizes[2] * iDataSet.GetSizeZ() + iDataSet.GetExtendMinZ())
+
     def startImaris(self, userControl=False):
         """Starts an Imaris instance and stores the ImarisApplication ICE object.
 
@@ -1881,7 +1916,6 @@ If a dataset exists, the X, Y, and Z dimensions must match the ones of the stack
         fileobj.close()
         return ImarisLib
 
-
     def _isImarisServerIceRunning(self):
         """ Checks whether an instance of ImarisServerIce is already running and can be reused. For internal use only!
 
@@ -1972,7 +2006,6 @@ If a dataset exists, the X, Y, and Z dimensions must match the ones of the stack
             return factory.IsVolume(obj)
         else:
             raise ValueError('Bad value for ''typeValue''.')
-
 
     def _ispc(self):
         """Returns true if pIceImarisConnector is being run on Windows. For internal use only!
