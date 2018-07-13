@@ -69,7 +69,8 @@ returns the currently selected object in the Imaris surpass scene.
     _mPossibleTypeFilters = ["Cells", "ClippingPlane", "Dataset", \
                              "Filaments", "Frame", "LightSource", \
                              "MeasurementPoints", "Spots", \
-                             "Surfaces", "SurpassCamera", "Volume"]
+                             "Surfaces", "SurpassCamera", "Volume", \
+                             "ReferenceFrames"]
 
     @property
     def version(self):
@@ -292,7 +293,12 @@ IceImarisConnector object is deleted.
         elif factory.IsImageProcessing(dataItem):
             return factory.ToImageProcessing(dataItem)
         else:
-            raise ValueError('Invalid IDataItem object!')
+            try:
+                # The Reference Frame object does not have an Is...() method
+                return factory.ToReferenceFrames(dataItem)
+            except Exception as e:
+                return None
+
 
     def closeImaris(self, quiet=False):
         """Closes the Imaris instance associated to the pIceImarisConnector
@@ -1632,7 +1638,7 @@ It does not move the min extends.
                 print(v)
                 return False
             except:
-                print "Unexpected error:", sys.exc_info()[0]
+                print("Unexpected error:", sys.exc_info()[0])
                 return False
 
             # Try getting the application over a certain time period in case it
@@ -2004,6 +2010,9 @@ It does not move the min extends.
             return factory.IsSurpassCamera(obj)
         elif typeValue == 'Volume':
             return factory.IsVolume(obj)
+        elif typeValue == 'ReferenceFrames':
+            # The factory does not have a Is...() method for reference frames
+            return factory.ToReferenceFrames(obj) is not None
         else:
             raise ValueError('Bad value for ''typeValue''.')
 
@@ -2054,7 +2063,7 @@ It does not move the min extends.
             print(v)
             return False
         except:
-            print "Unexpected error:", sys.exc_info()[0]
+            print("Unexpected error:", sys.exc_info()[0])
             return False
 
         if not process:
