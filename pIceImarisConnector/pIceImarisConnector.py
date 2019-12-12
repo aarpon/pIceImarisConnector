@@ -53,6 +53,9 @@ returns the currently selected object in the Imaris surpass scene.
     _mImarisServerIceExePath = ""
     _mImarisLibPath = ""
 
+    # Imaris version in integer form
+    _mImarisIntegerVersion = 1
+
     # ImarisLib object
     _mImarisLib = None
 
@@ -1708,8 +1711,7 @@ It does not move the min extends.
             elif self._ismac():
                 tmp = "/Applications"
             else:
-                raise OSError("pIceImarisConnector only works " + \
-                              "on Windows and Mac OS X.")
+                raise OSError("pIceImarisConnector only works on Windows and Mac OS X.")
 
             # Check that the folder exist
             if os.path.isdir(tmp):
@@ -1717,10 +1719,8 @@ It does not move the min extends.
                 # Pick the directory name with highest version number
                 newestVersionDir = self._findNewestVersionDir(tmp)
                 if newestVersionDir is None:
-                    raise OSError("No Imaris installation found " + \
-                                  "in " + tmp + ". Please define " + \
-                                  "an environment variable " + \
-                                  "'IMARISPATH'.")
+                    raise OSError("No Imaris installation found in " + tmp + ". Please define " +
+                                  "an environment variable 'IMARISPATH'.")
                 else:
                     imarisPath = newestVersionDir
 
@@ -1728,8 +1728,7 @@ It does not move the min extends.
 
             # Check that IMARISPATH points to a valid directory
             if not os.path.isdir(imarisPath):
-                raise OSError("The content of the IMARISPATH " + \
-                              "environment variable does not " + \
+                raise OSError("The content of the IMARISPATH environment variable does not " +
                               "point to a valid directory.")
 
         # Now store imarisPath and proceed with setting all required
@@ -1740,20 +1739,27 @@ It does not move the min extends.
         # the ImarisLib library
         if self._ispc():
             exePath = os.path.join(imarisPath, 'Imaris.exe')
-            serverExePath = os.path.join(imarisPath,
-                                         'ImarisServerIce.exe')
-            libPath = os.path.join(imarisPath, 'XT', 'python')
+            serverExePath = os.path.join(imarisPath, 'ImarisServerIce.exe')
+            if self._mImarisIntegerVersion >= 9050000:
+                # Imaris 9.5 supports also python 3
+                if sys.version_info[0] == 2:
+                    libPath = os.path.join(imarisPath, 'XT', 'python2')
+                else:
+                    libPath = os.path.join(imarisPath, 'XT', 'python3')
+
         elif self._ismac():
             exePath = os.path.join(imarisPath,
                                    'Contents', 'MacOS', 'Imaris')
             serverExePath = os.path.join(imarisPath,
-                                         'Contents', 'MacOS',
-                                         'ImarisServerIce')
-            libPath = os.path.join(imarisPath, 'Contents', 'SharedSupport',
-                                   'XT', 'python')
+                                         'Contents', 'MacOS', 'ImarisServerIce')
+            if self._mImarisIntegerVersion >= 9050000:
+                # Imaris 9.5 supports also python 3
+                if sys.version_info[0] == 2:
+                    libPath = os.path.join(imarisPath, 'Contents', 'SharedSupport', 'XT', 'python2')
+                else:
+                    libPath = os.path.join(imarisPath, 'Contents', 'SharedSupport', 'XT', 'python3')
         else:
-            raise OSError("pIceImarisConnector only works " + \
-                          "on Windows and Mac OS X.")
+            raise OSError("pIceImarisConnector only works on Windows and Mac OS X.")
 
         # Check whether the executable Imaris file exists
         if not os.path.isfile(exePath):
@@ -1831,6 +1837,10 @@ It does not move the min extends.
                 newestVersionDir = d
                 newestVersion = version
 
+        # Store the version
+        self._mImarisIntegerVersion = newestVersion
+
+        # Return it
         return newestVersionDir
 
     def _getChildrenAtLevel(self, container, recursive, children):
@@ -1933,12 +1943,12 @@ It does not move the min extends.
         # The check will be different on Windows and on Mac OS X
         if self._ispc():
             cmd = "tasklist /NH /FI \"IMAGENAME eq ImarisServerIce.exe\""
-            result = subprocess.check_output(cmd)
+            result = str(subprocess.check_output(cmd))
             if "ImarisServerIce.exe" in result:
                 return True
 
         elif self._ismac():
-            result = subprocess.check_output(["ps", "aux"])
+            result = str(subprocess.check_output(["ps", "aux"]))
             if self._mImarisServerIceExePath in result:
                 return True
         else:
