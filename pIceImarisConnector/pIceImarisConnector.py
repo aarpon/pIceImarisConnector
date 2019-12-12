@@ -15,7 +15,7 @@ class pIceImarisConnector(object):
     """pIceImarisConnector is a simple Python class that eases communication
 between Bitplane Imaris and Python using the Imaris XT interface.
 
-*Copyright Aaron Ponti, 2013 - 2015.*
+*Copyright Aaron Ponti, 2013 - 2020.*
 
 :param imarisApplication: (optional) if omitted, a pIceImarisConnector object is created that is not connected to any Imaris instance.
 
