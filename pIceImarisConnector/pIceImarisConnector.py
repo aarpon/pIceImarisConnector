@@ -45,7 +45,7 @@ class pIceImarisConnector(object):
     """
 
     # pIceImarisConnector version
-    _mVersion = "0.4.0 beta"
+    __version__ = "0.4.0 beta"
 
     # Imaris-related paths
     _mImarisPath = ""
@@ -76,7 +76,7 @@ class pIceImarisConnector(object):
     @property
     def version(self):
         """Return the version number."""
-        return self._mVersion
+        return self.__version__
 
     @property
     def mImarisApplication(self):
