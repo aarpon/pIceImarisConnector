@@ -11,12 +11,8 @@ def TestPIceOne(aImarisId):
     # Open the PyramidalCell file
     # =======================================================s==================
     print('Load file...')
-    currFilePath = os.path.realpath(__file__)
-    currPath = os.path.dirname(currFilePath)
-    filename = os.path.join(currPath, 'PyramidalCell.ims')
-    print(filename)
-    conn.mImarisApplication.FileOpen(filename, '')
-
+    conn.loadPyramidalCellTestDataset()
+    
     # Check that there is something loaded
     # =========================================================================
     print('Test that the file was loaded...')

@@ -11,10 +11,7 @@ def TestPIceTwo(aImarisId):
     # Open the SwimmingAlgae file
     # =======================================================s==================
     print('Load file...')
-    currFilePath = os.path.realpath(__file__)
-    currPath = os.path.dirname(currFilePath)
-    filename = os.path.join(currPath, 'SwimmingAlgae.ims')
-    conn.mImarisApplication.FileOpen(filename, '')
+    conn.loadSwimmingAlgaeTestDataset()
 
     # Check that there is something loaded
     # =========================================================================
