@@ -45,7 +45,7 @@ class pIceImarisConnector(object):
     """
 
     # pIceImarisConnector version
-    __version__ = "0.4.0 beta"
+    __version__ = "0.4.0 beta 1"
 
     # Imaris-related paths
     _mImarisPath = ""
@@ -1113,7 +1113,7 @@ class pIceImarisConnector(object):
          Quaternion) for the axes with "Origin Bottom Left".
 
         :return: tuple with (4 x 4) rotation matrix (R) and a Boolean (isI) that indicates whether or not the
-        rotation matrix is the Identity matrix (i.e. the camera is perpendicular to the dataset).
+                 rotation matrix is the Identity matrix (i.e. the camera is perpendicular to the dataset).
         :rtype: tuple (R, isI)
 
         **REMARKS**
@@ -1243,10 +1243,10 @@ class pIceImarisConnector(object):
     def getTracks(self, iObject=None):
         """This method returns the tracks associated to an ISpots or an ISurfaces object. If no object is passed
         as argument, the function will try with the currently selected object in the Surpass Scene. If this is not
-         an ISpots nor an ISurfaces object, an empty result set will be returned.
+        an ISpots nor an ISurfaces object, an empty result set will be returned.
 
-        :param iSpots (optional, default None) (optional) either an ISpots or an ISurfaces object. If not passed,
-                      the function will try with the currently selected object in the Surpass Scene.
+        :param iSpots (optional, default None) (optional) either an ISpots or an ISurfaces object. If not passed, 
+        the function will try with the currently selected object in the Surpass Scene.
         :type Imaris::IDataItem
 
         :return: tuple containing an array of tracks and and array of starting time indices for each track.
@@ -1804,13 +1804,14 @@ class pIceImarisConnector(object):
 
     @staticmethod
     def quaternionConjugate(q):
-        """
-        This method returns the conjugate of a quaternion.
-        :param q: quaternion [a b c d], or list of quaternions [a_i b_i c_i d_i]_n
+        """This method returns the conjugate of a quaternion.
+
+        :param q: quaternion [a b c d], or list of quaternions [a_i b_i c_i d_i], i = 0..n.
                   If q is an Nx4 matrix, it will be assumed that each row represent a quaternion
                   (e.g. all quaternions for a time series). If the quaternions are not normalized,
                   they will be before the conjugate is calculated.
         :type q: list or numpy array
+        
         :return: conjugate of the quaternion (list)
         :rtype: numpy array
         """
@@ -1928,7 +1929,7 @@ class pIceImarisConnector(object):
         :param userControl: (optional, default False) The optional parameter userControl sets the fate of Imaris
                             when the client is closed: if userControl is True, Imaris terminates when the
                             pIceImarisConnector object is deleted. If is it set to False, Imaris stays open after
-                             the pIceImarisConnector object is deleted.
+                            the pIceImarisConnector object is deleted.
         :type userControl: Boolean
 
         :return: True if starting Imaris was successful, False otherwise.
@@ -2009,6 +2010,18 @@ class pIceImarisConnector(object):
 
         except:
             print("Error: " + str(sys.exc_info()[0]))
+
+    def loadPyramidalCellTestDataset(self):
+        """Loads the PyramidalCell.ims test dataset."""
+        filename = str(os.path.join(self.__getTestFolderAbsPath(), 'PyramidalCell.ims'))
+        if self.isAlive():
+            self.mImarisApplication.FileOpen(filename, '')
+
+    def loadSwimmingAlgaeTestDataset(self):
+        """Loads the SwimmingAlgae.ims test dataset."""
+        filename = str(os.path.join(self.__getTestFolderAbsPath(), 'SwimmingAlgae.ims'))
+        if self.isAlive():
+            self.mImarisApplication.FileOpen(filename, '')
 
     # --------------------------------------------------------------------------
     #
@@ -2407,3 +2420,15 @@ class pIceImarisConnector(object):
             t = time.time()
 
         return False
+    
+    def __getTestFolderAbsPath(self):
+        """Retrieve the absolute path to the test folder.
+        
+        :return: full path to the test folder.
+        :rtype: string
+        """
+        import pIceImarisConnector as m
+        m_path = os.path.dirname(m.__file__)
+        m_parent_path = os.path.join(m_path, '..')
+        m_test_path = os.path.join(m_parent_path, 'test')
+        return os.path.abspath(m_test_path)
