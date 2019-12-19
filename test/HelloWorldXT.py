@@ -1,17 +1,14 @@
-# Hello World! XT example
-#
 # <CustomTools>
-#  <Menu>
-#   <Submenu name="ImarisXT course">
-#    <Item name="Hello World!" icon="Python">
-#   <Command>PythonXT::HelloWorldXT(#i)</Command>
-#  </Item>
-# </Submenu>
-# </Menu>
+#   <Menu>
+#    <Item name="pIceImarisConnector: Test Hello World!" icon="Python3" tooltip="Test function for pIceImarisConnector.">
+#      <Command>Python3XT::HelloWorldXT(%i)</Command>
+#    </Item>
+#   </Menu>
 # </CustomTools>
 
 from pIceImarisConnector import pIceImarisConnector
-import Tkinter
+import tkinter
+import time
 
 def HelloWorldXT(aImarisId):
 
@@ -19,10 +16,12 @@ def HelloWorldXT(aImarisId):
     conn = pIceImarisConnector(aImarisId)
 
     # Display version info in a dialog
-    top = Tkinter.Tk()
+    top = tkinter.Tk()
     top.title("Hello World!")
-    l = Tkinter.Label(top,
+    l = tkinter.Label(top,
         text = '... from pIceImarisConnector ' + conn.version +
         ' and ' + conn.mImarisApplication.GetVersion())
     l.pack()
     top.mainloop()
+
+    time.sleep(5)
