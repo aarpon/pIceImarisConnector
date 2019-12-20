@@ -4,7 +4,8 @@ import platform
 import glob
 import re
 import random
-import imp
+import imp            # Deprecated; used only as fallback until we are sure that importlib works fine.
+import importlib
 import subprocess
 import time
 import math
@@ -45,7 +46,7 @@ class pIceImarisConnector(object):
     """
 
     # pIceImarisConnector version
-    __version__ = "0.4.0 beta 1"
+    __version__ = "0.4.0 beta 3"
 
     # Imaris-related paths
     _mImarisPath = ""
@@ -2267,9 +2268,13 @@ class pIceImarisConnector(object):
         """Imports the ImarisLib module. For internal use only!"""
 
         # Dynamically find and import the ImarisLib module
-        fileobj, pathname, description = imp.find_module('ImarisLib')
-        ImarisLib = imp.load_module('ImarisLib', fileobj, pathname, description)
-        fileobj.close()
+        try:
+            ImarisLib = importlib.import_module("ImarisLib")
+        except:
+            # The imp module is deprecated.
+            fileobj, pathname, description = imp.find_module('ImarisLib')
+            ImarisLib = imp.load_module('ImarisLib', fileobj, pathname, description)
+            fileobj.close()
         return ImarisLib
 
     def _isImarisServerIceRunning(self):
