@@ -1,5 +1,4 @@
-.. pIceImarisConnector documentation master file, created by
-   sphinx-quickstart on Thu Dec 12 12:44:49 2019.
+.. pIceImarisConnector documentation master file
 
 pIceImarisConnector
 ===================
@@ -9,7 +8,8 @@ pIceImarisConnector
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   
+   usage
 
 .. automodule:: pIceImarisConnector
    :members:

@@ -8,7 +8,6 @@
 
 from pIceImarisConnector import pIceImarisConnector
 import tkinter
-import time
 
 def HelloWorldXT(aImarisId):
 
@@ -18,10 +17,7 @@ def HelloWorldXT(aImarisId):
     # Display version info in a dialog
     top = tkinter.Tk()
     top.title("Hello World!")
-    l = tkinter.Label(top,
-        text = '... from pIceImarisConnector ' + conn.version +
-        ' and ' + conn.mImarisApplication.GetVersion())
+    l = tkinter.Label(top, text=f"... from pIceImarisConnector {conn.__version__} "
+                                f"and {conn.mImarisApplication.GetVersion()}")
     l.pack()
     top.mainloop()
-
-    time.sleep(5)
