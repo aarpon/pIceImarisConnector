@@ -150,3 +150,8 @@ assert (testNormalize(np.array([0.0, 0.0, 0.0]), [0.0, 0.0, 0.0]))
 assert (testNormalize([1.0, 0.0, 0.0], [1.0, 0.0, 0.0]))
 assert (testNormalize([[1.0], [0.0], [0.0]], [[1.0], [0.0], [0.0]]))   # Column vector
 
+# Test calling a static method from the object
+conn = pIce()
+n = conn.normalize([0.0, 3.0, 4.0])
+expected_n = [0.0, 0.6, 0.8]
+assert(np.all(np.abs(n - expected_n) <= 1e-4))
