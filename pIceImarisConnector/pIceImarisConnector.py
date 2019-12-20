@@ -299,7 +299,8 @@ class pIceImarisConnector(object):
                 print(e)
                 return None
 
-    def calcRotationBetweenVectors3D(self, start, dest):
+    @staticmethod
+    def calcRotationBetweenVectors3D(start, dest):
         """This method calculates the rotation needed to bring a 3D vector on top of another.
 
         :param start: starting 3D vector.
@@ -354,7 +355,8 @@ class pIceImarisConnector(object):
         # Build the quaternion
         s = np.sqrt((1 + cos_theta) * 2)
         invs = 1 / s
-        q = [rotation_axis[1] * invs, rotation_axis[2] * invs, rotation_axis[3] * invs, s * 0.5]
+        q = np.array([rotation_axis[0] * invs, rotation_axis[1] * invs, rotation_axis[2] * invs, s * 0.5],
+                     dtype=np.float32)
 
         return q
 
