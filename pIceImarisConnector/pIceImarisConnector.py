@@ -2082,7 +2082,8 @@ class pIceImarisConnector(object):
                     libPath = os.path.join(imarisPath, 'XT', 'python2')
                 else:
                     libPath = os.path.join(imarisPath, 'XT', 'python3')
-
+            else:
+                libPath = os.path.join(imarisPath, 'XT', 'python')
         elif self._ismac():
             exePath = os.path.join(imarisPath,
                                    'Contents', 'MacOS', 'Imaris')
@@ -2094,6 +2095,8 @@ class pIceImarisConnector(object):
                     libPath = os.path.join(imarisPath, 'Contents', 'SharedSupport', 'XT', 'python2')
                 else:
                     libPath = os.path.join(imarisPath, 'Contents', 'SharedSupport', 'XT', 'python3')
+            else:
+                libPath = os.path.join(imarisPath, 'Contents', 'SharedSupport', 'XT', 'python')
         else:
             raise OSError("pIceImarisConnector only works on Windows and Mac OS X.")
 
