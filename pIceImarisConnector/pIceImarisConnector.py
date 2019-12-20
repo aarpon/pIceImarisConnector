@@ -46,7 +46,7 @@ class pIceImarisConnector(object):
     """
 
     # pIceImarisConnector version
-    __version__ = "0.4.0 beta 3"
+    __version__ = "0.4.0b4"
 
     # Imaris-related paths
     _mImarisPath = ""
@@ -2014,15 +2014,26 @@ class pIceImarisConnector(object):
         except:
             print("Error: " + str(sys.exc_info()[0]))
 
+    def getTestFolder(self):
+        """Retrieve the absolute path to the test folder.
+
+        This folder contains two test datasets and some XT functions.
+
+        :return: full path to the test folder.
+        :rtype: string
+        """
+        import pIceImarisConnector.test as t
+        return os.path.abspath(os.path.dirname(t.__file__))
+
     def loadPyramidalCellTestDataset(self):
         """Loads the PyramidalCell.ims test dataset."""
-        filename = str(os.path.join(self.__getTestFolderAbsPath(), 'PyramidalCell.ims'))
+        filename = str(os.path.join(self.getTestFolder(), 'PyramidalCell.ims'))
         if self.isAlive():
             self.mImarisApplication.FileOpen(filename, '')
 
     def loadSwimmingAlgaeTestDataset(self):
         """Loads the SwimmingAlgae.ims test dataset."""
-        filename = str(os.path.join(self.__getTestFolderAbsPath(), 'SwimmingAlgae.ims'))
+        filename = str(os.path.join(self.getTestFolder(), 'SwimmingAlgae.ims'))
         if self.isAlive():
             self.mImarisApplication.FileOpen(filename, '')
 
@@ -2430,15 +2441,5 @@ class pIceImarisConnector(object):
             t = time.time()
 
         return False
-    
-    def __getTestFolderAbsPath(self):
-        """Retrieve the absolute path to the test folder.
-        
-        :return: full path to the test folder.
-        :rtype: string
-        """
-        import pIceImarisConnector as m
-        m_path = os.path.dirname(m.__file__)
-        m_parent_path = os.path.join(m_path, '..')
-        m_test_path = os.path.join(m_parent_path, 'test')
-        return os.path.abspath(m_test_path)
+
+

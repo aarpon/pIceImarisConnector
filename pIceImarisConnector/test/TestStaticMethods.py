@@ -1,3 +1,6 @@
+# This file tests static functionality of pIceImarisConnector and does not require to
+# be connected to Imaris to run.
+
 from pIceImarisConnector import pIceImarisConnector as pIce
 import numpy as np
 import math
