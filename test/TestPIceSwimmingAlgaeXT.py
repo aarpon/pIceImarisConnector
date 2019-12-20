@@ -1,7 +1,7 @@
 # <CustomTools>
 #   <Menu>
 #    <Item name="pIceImarisConnector: Test SwimmingAlgae" icon="Python3" tooltip="Test function for pIceImarisConnector using the SwimmingAlgae demo dataset.">
-#      <Command>Python3XT::TestPIceSwimmingAlgae(%i)</Command>
+#      <Command>Python3XT::TestPIceSwimmingAlgaeXT(%i)</Command>
 #    </Item>
 #   </Menu>
 # </CustomTools>
@@ -11,7 +11,7 @@ import numpy as np
 
 from pIceImarisConnector import pIceImarisConnector
 
-def TestPIceSwimmingAlgae(aImarisId):
+def TestPIceSwimmingAlgaeXT(aImarisId):
 
     # Instantiate the pIceImarisConnector object
     conn = pIceImarisConnector(aImarisId)

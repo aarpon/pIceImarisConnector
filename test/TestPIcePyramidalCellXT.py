@@ -1,7 +1,7 @@
 # <CustomTools>
 #   <Menu>
 #    <Item name="pIceImarisConnector: Test PyramidalCell" icon="Python3" tooltip="Test function for pIceImarisConnector using the PyramidalCell demo dataset.">
-#      <Command>Python3XT::PyramidalCell(%i)</Command>
+#      <Command>Python3XT::TestPIcePyramidalCellXT(%i)</Command>
 #    </Item>
 #   </Menu>
 # </CustomTools>
@@ -11,7 +11,7 @@ import numpy as np
 
 from pIceImarisConnector import pIceImarisConnector
 
-def PyramidalCell(aImarisId):
+def TestPIcePyramidalCellXT(aImarisId):
 
     # Instantiate the pIceImarisConnector object
     conn = pIceImarisConnector(aImarisId)
