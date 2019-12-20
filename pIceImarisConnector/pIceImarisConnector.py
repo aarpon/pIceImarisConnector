@@ -2014,7 +2014,8 @@ class pIceImarisConnector(object):
         except:
             print("Error: " + str(sys.exc_info()[0]))
 
-    def getTestFolder(self):
+    @staticmethod
+    def getTestFolder():
         """Retrieve the absolute path to the test folder.
 
         This folder contains two test datasets and some XT functions.
@@ -2027,13 +2028,13 @@ class pIceImarisConnector(object):
 
     def loadPyramidalCellTestDataset(self):
         """Loads the PyramidalCell.ims test dataset."""
-        filename = str(os.path.join(self.getTestFolder(), 'PyramidalCell.ims'))
+        filename = str(os.path.join(pIceImarisConnector.getTestFolder(), 'PyramidalCell.ims'))
         if self.isAlive():
             self.mImarisApplication.FileOpen(filename, '')
 
     def loadSwimmingAlgaeTestDataset(self):
         """Loads the SwimmingAlgae.ims test dataset."""
-        filename = str(os.path.join(self.getTestFolder(), 'SwimmingAlgae.ims'))
+        filename = str(os.path.join(pIceImarisConnector.getTestFolder(), 'SwimmingAlgae.ims'))
         if self.isAlive():
             self.mImarisApplication.FileOpen(filename, '')
 
