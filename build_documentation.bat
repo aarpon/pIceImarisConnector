@@ -1,3 +1,3 @@
 @ECHO OFF
-cd doc
+cd docs
 make html

@@ -14,20 +14,22 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
+import datetime
 import sphinx_rtd_theme
 import sys, os
 sys.path.insert(0, os.path.abspath('../pIceImarisConnector'))
 from pIceImarisConnector import pIceImarisConnector
 
 # -- Project information -----------------------------------------------------
-
 project = 'pIceImarisConnector'
-copyright = '2013 - 2020, Aaron Ponti'
+year = str(datetime.datetime.now().year)
+copyright = f"2013 - {year}, Aaron Ponti"
 author = 'Aaron Ponti'
 
 # The full version, including alpha/beta/rc tags
 release = str(pIceImarisConnector.__version__)
 
+master_doc = 'index'
 
 # -- General configuration ---------------------------------------------------
 
