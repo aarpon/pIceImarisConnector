@@ -2,3 +2,5 @@
 /build/
 /dist/
 /.idea/
+/.vscode/
+/pIceImarisConnector.egg-info/

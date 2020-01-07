@@ -1,5 +1,5 @@
-recursive-include doc/html *
-prune doc/html/.doctrees/
-exclude doc/html/.buildinfo
+recursive-include doc/_build/html *
+exclude doc/_build/html/.buildinfo
+include *.ims *.py
 include LICENSE.txt
 include README.md
