@@ -991,13 +991,13 @@ class pIceImarisConnector(object):
         :return: DataSet extends.
         :rtype: tuple
 
-        The extends tuple is: ``(minX, minY, minZ, maxX, maxY, maxZ)``, where:
+        The extends tuple is: ``(minX, maxX, minY, maxY, minZ, maxZ)``, where:
 
         * minX : min extend along X dimension,
-        * minY : min extend along Y dimension,
-        * minZ : min extend along Z dimension,
         * maxX : max extend along X dimension,
+        * minY : min extend along Y dimension,
         * maxY : max extend along Y dimension,
+        * minZ : min extend along Z dimension,
         * maxZ : max extend along Z dimension.
         """
 
@@ -1007,7 +1007,7 @@ class pIceImarisConnector(object):
 
         # Wrap the extends into a tuple
         return (self._mImarisApplication.GetDataSet().GetExtendMinX(),
-                self._mImarisApplication.GetDataSet().GetExtendMaxY(),
+                self._mImarisApplication.GetDataSet().GetExtendMaxX(),
                 self._mImarisApplication.GetDataSet().GetExtendMinY(),
                 self._mImarisApplication.GetDataSet().GetExtendMaxY(),
                 self._mImarisApplication.GetDataSet().GetExtendMinZ(),
