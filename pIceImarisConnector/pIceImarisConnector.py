@@ -13,10 +13,7 @@ import numpy as np
 
 
 class pIceImarisConnector(object):
-    """pIceImarisConnector is a simple Python class that eases communication between Bitplane Imaris and Python
-     using the Imaris XT interface.
-
-    *Copyright Aaron Ponti, 2013 - 2020.*
+    """pIceImarisConnector is a simple Python class that eases communication between Bitplane Imaris and Python using the Imaris XT interface.
 
     :param imarisApplication: (optional) if omitted, a pIceImarisConnector object is created that is not
      connected to any Imaris instance.
@@ -46,7 +43,7 @@ class pIceImarisConnector(object):
     """
 
     # pIceImarisConnector version
-    __version__ = "0.4.0"
+    __version__ = "0.4.1"
 
     # Imaris-related paths
     _mImarisPath = ""
@@ -991,13 +988,13 @@ class pIceImarisConnector(object):
         :return: DataSet extends.
         :rtype: tuple
 
-        The extends tuple is: ``(minX, minY, minZ, maxX, maxY, maxZ)``, where:
+        The extends tuple is: ``(minX, maxX, minY, maxY, minZ, maxZ)``, where:
 
         * minX : min extend along X dimension,
-        * minY : min extend along Y dimension,
-        * minZ : min extend along Z dimension,
         * maxX : max extend along X dimension,
+        * minY : min extend along Y dimension,
         * maxY : max extend along Y dimension,
+        * minZ : min extend along Z dimension,
         * maxZ : max extend along Z dimension.
         """
 
@@ -1007,7 +1004,7 @@ class pIceImarisConnector(object):
 
         # Wrap the extends into a tuple
         return (self._mImarisApplication.GetDataSet().GetExtendMinX(),
-                self._mImarisApplication.GetDataSet().GetExtendMaxY(),
+                self._mImarisApplication.GetDataSet().GetExtendMaxX(),
                 self._mImarisApplication.GetDataSet().GetExtendMinY(),
                 self._mImarisApplication.GetDataSet().GetExtendMaxY(),
                 self._mImarisApplication.GetDataSet().GetExtendMinZ(),

@@ -20,7 +20,7 @@ def TestPIcePyramidalCellXT(aImarisId):
     # =======================================================s==================
     print('Load file...')
     conn.loadPyramidalCellTestDataset()
-    
+
     # Check that there is something loaded
     # =========================================================================
     print('Test that the file was loaded...')
@@ -29,7 +29,7 @@ def TestPIcePyramidalCellXT(aImarisId):
     # Check the extends
     # =========================================================================
     print('Check the dataset extends...')
-    EXTENDS = (-0.1140, 57.8398, -0.1140, 57.8398, -0.1510, 20.6310)
+    EXTENDS = (-0.1140, 57.8410, -0.1140, 57.8398, -0.1510, 20.6310)
     extends = conn.getExtends()
     assert(all([abs(x - y) < 1e-4 for x, y in zip(EXTENDS, extends)]))
 
@@ -313,7 +313,7 @@ def TestPIcePyramidalCellXT(aImarisId):
     print('Send volume (force dataset creation)...')
     stack = np.zeros((100, 200, 50), dtype = np.uint16)
     conn.setDataVolume(stack, 0, 0)
-    
+
     # Test retrieving volume and slice for a non 8-bit dataset
     print('Test retrieving volume and slice for a non 8-bit dataset...')
     volume16 = conn.getDataVolume(0, 0)
