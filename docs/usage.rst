@@ -40,6 +40,10 @@ In an Imaris XT file:
 
 From a python console:
 
+.. note::
+
+    When starting Imaris, make sure to activate the ImarisXT:IPSS license!
+
 .. code-block:: python
     
     # If Imaris is already running
@@ -52,7 +56,7 @@ From a python console:
     Out[3]: pIceImarisConnector: connected to Imaris.
 
     In[4]: print(conn.mImarisApplication.GetVersion())
-    Imaris x64 9.5.1 [Nov 27 2019]
+    Imaris x64 9.7.2 [Mar 24 2021]
 
 .. code-block:: python
 
@@ -67,6 +71,6 @@ From a python console:
     # Remember to activate the ImarisXT license!
 
     In[4]: print(conn.mImarisApplication.GetVersion())
-    Imaris x64 9.5.1 [Nov 27 2019]
+    Imaris x64 9.7.2 [Mar 24 2021]
 
     In[5]: conn.closeImaris(True)
