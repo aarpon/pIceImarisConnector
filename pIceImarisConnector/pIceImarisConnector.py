@@ -43,7 +43,7 @@ class pIceImarisConnector(object):
     """
 
     # pIceImarisConnector version
-    __version__ = "0.4.1"
+    __version__ = "0.4.2"
 
     # Imaris-related paths
     _mImarisPath = ""
