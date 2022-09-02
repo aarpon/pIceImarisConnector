@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pIceImarisConnector"
-version = "0.4.2"
+version = "0.4.2b6"
 description = "IceImarisConnector for python (pIceImarisConnector) is a simple commodity class that eases communication between Bitplane Imaris and python using the Imaris XT interface."
 authors = ["Aaron Ponti <aaron.ponti@bsse.ethz.ch>"]
 license = "GPL-2.0-only"
@@ -20,8 +20,8 @@ classifiers=[
 "Bug Tracker" = "https://github.com/aarpon/pIceImarisConnector/issues"
 
 [tool.poetry.dependencies]
-python = "3.7"
-numpy = "1.16"
+python = ">=3.7,<3.8"
+numpy = "^1.16.6"
 
 [tool.poetry.dev-dependencies]
 Sphinx = "^5.1.1"
