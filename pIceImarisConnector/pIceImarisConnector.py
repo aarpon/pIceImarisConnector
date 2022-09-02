@@ -1,14 +1,15 @@
-import os
-import sys
-import platform
 import glob
-import re
-import random
-import imp            # Deprecated; used only as fallback until we are sure that importlib works fine.
+import imp  # Deprecated; used only as fallback until we are sure that importlib works fine.
 import importlib
-import subprocess
-import time
 import math
+import os
+import platform
+import random
+import re
+import subprocess
+import sys
+import time
+
 import numpy as np
 
 
@@ -63,7 +64,11 @@ class pIceImarisConnector(object):
         instantiated and returned.
         """
 
-        if args and args[0] is not None and type(args[0]).__name__ == "pIceImarisConnector":
+        if (
+            args
+            and args[0] is not None
+            and type(args[0]).__name__ == "pIceImarisConnector"
+        ):
             # Reusing passed object
             return args[0]
         else:
@@ -71,7 +76,7 @@ class pIceImarisConnector(object):
             return object.__new__(cls)
 
     def __init__(self, imarisApplication=None):
-        """"Initializes the created pIceImarisConnector object.
+        """ "Initializes the created pIceImarisConnector object.
 
         imarisApplication : (optional) if omitted (or set to None), a pIceImarisConnector object is created that
                             is not connected to any Imaris instance.
@@ -109,16 +114,30 @@ class pIceImarisConnector(object):
         self._mUserControl = False
 
         # Possible type filters
-        self._mPossibleTypeFilters = ["Cells", "ClippingPlane", "DataSet", "Filaments", "Frame", "LightSource",
-                                      "MeasurementPoints", "Spots", "Surfaces", "SurpassCamera", "Volume",
-                                      "ReferenceFrames"]
+        self._mPossibleTypeFilters = [
+            "Cells",
+            "ClippingPlane",
+            "DataSet",
+            "Filaments",
+            "Frame",
+            "LightSource",
+            "MeasurementPoints",
+            "Spots",
+            "Surfaces",
+            "SurpassCamera",
+            "Volume",
+            "ReferenceFrames",
+        ]
 
         # If imarisApplication is a pIceImarisConnector reference,
         # we return immediately, because we want to re-use the
         # object without changes. The __new__() method took care of
         # returnig a reference to the passed object instead of creating
         # a new one.
-        if imarisApplication is not None and type(imarisApplication).__name__ == "pIceImarisConnector":
+        if (
+            imarisApplication is not None
+            and type(imarisApplication).__name__ == "pIceImarisConnector"
+        ):
             return
 
         # Store the required paths
@@ -171,11 +190,11 @@ class pIceImarisConnector(object):
             # Check if the application is registered
             server = self._mImarisLib.GetServer()
             if server is None:
-                raise Exception('Could not connect to Imaris Server!')
+                raise Exception("Could not connect to Imaris Server!")
 
             nApps = server.GetNumberOfObjects()
             if nApps == 0:
-                raise Exception('There are no registered Imaris applications!')
+                raise Exception("There are no registered Imaris applications!")
 
             # Does the passed ID match the ID of any of the
             # registered (running) Imaris application?
@@ -186,13 +205,15 @@ class pIceImarisConnector(object):
                     break
 
             if not found:
-                raise Exception('Invalid Imaris application ID!')
+                raise Exception("Invalid Imaris application ID!")
 
             # Get the application corresponding to the passed ID
-            self._mImarisApplication = self._mImarisLib.GetApplication(imarisApplication)
+            self._mImarisApplication = self._mImarisLib.GetApplication(
+                imarisApplication
+            )
 
             if self._mImarisApplication is None:
-                raise Exception('Could not connect to Imaris!')
+                raise Exception("Could not connect to Imaris!")
 
             # We also update the ID
             self._mImarisObjectID = imarisApplication
@@ -315,14 +336,14 @@ class pIceImarisConnector(object):
         elif isinstance(start, np.ndarray):
             pass
         else:
-            raise TypeError('Expected list or Numpy array.')
+            raise TypeError("Expected list or Numpy array.")
 
         if isinstance(dest, list):
             dest = np.array(dest, dtype=np.float32)
         elif isinstance(dest, np.ndarray):
             pass
         else:
-            raise TypeError('Expected list or Numpy array.')
+            raise TypeError("Expected list or Numpy array.")
 
         # Normalize
         start = pIceImarisConnector.normalize(start)
@@ -353,8 +374,15 @@ class pIceImarisConnector(object):
         # Build the quaternion
         s = np.sqrt((1 + cos_theta) * 2)
         invs = 1 / s
-        q = np.array([rotation_axis[0] * invs, rotation_axis[1] * invs, rotation_axis[2] * invs, s * 0.5],
-                     dtype=np.float32)
+        q = np.array(
+            [
+                rotation_axis[0] * invs,
+                rotation_axis[1] * invs,
+                rotation_axis[2] * invs,
+                s * 0.5,
+            ],
+            dtype=np.float32,
+        )
 
         return q
 
@@ -434,7 +462,9 @@ class pIceImarisConnector(object):
             npChannelIndices = np.array([channelIndices])
 
         # Check the passed indices are within bounds
-        if np.any(np.logical_or(npChannelIndices < 0, npChannelIndices > (nChannels - 1))):
+        if np.any(
+            np.logical_or(npChannelIndices < 0, npChannelIndices > (nChannels - 1))
+        ):
             ValueError("channelIndices is out of bounds.")
 
         # Collect the channel names
@@ -453,12 +483,13 @@ class pIceImarisConnector(object):
             newChannelIndex = nChannels - 1
 
             # Set the new channel name
-            newChannelName = 'Copy of ' + channelNames[npChannelIndices[c]]
+            newChannelName = "Copy of " + channelNames[npChannelIndices[c]]
             iDataSet.SetChannelName(newChannelIndex, newChannelName)
 
             # Set the new channel color
-            iDataSet.SetChannelColorRGBA(newChannelIndex, \
-                                         iDataSet.GetChannelColorRGBA(npChannelIndices[c]))
+            iDataSet.SetChannelColorRGBA(
+                newChannelIndex, iDataSet.GetChannelColorRGBA(npChannelIndices[c])
+            )
 
             for t in range(nTimepoints):
                 # Get the stack
@@ -467,7 +498,9 @@ class pIceImarisConnector(object):
                 # Set the stack
                 self.setDataVolume(stack, newChannelIndex, t)
 
-    def createAndSetSpots(self, coords, timeIndices, radii, name, color, container=None):
+    def createAndSetSpots(
+        self, coords, timeIndices, radii, name, color, container=None
+    ):
         """Creates Spots and adds them to the Surpass Scene.
 
         :param coords: (nx3) [x, y, z]\ :sub:`n` coordinate matrix in dataset units.
@@ -516,12 +549,10 @@ class pIceImarisConnector(object):
         # Check argument size consistency
         nSpots = len(coords)
         if len(timeIndices) != nSpots:
-            raise ValueError("timeIndices must contain " +
-                             str(nSpots) + "elements.")
+            raise ValueError("timeIndices must contain " + str(nSpots) + "elements.")
 
         if len(radii) != nSpots:
-            raise ValueError("radii must contain " +
-                             str(nSpots) + "elements.")
+            raise ValueError("radii must contain " + str(nSpots) + "elements.")
 
         # If the container was not specified, add to the Surpass Scene
         if container is None:
@@ -549,8 +580,19 @@ class pIceImarisConnector(object):
         # Return it
         return newSpots
 
-    def createDataSet(self, datatype, sizeX, sizeY, sizeZ, sizeC, sizeT, \
-                      voxelSizeX=1, voxelSizeY=1, voxelSizeZ=1, deltaTime=1):
+    def createDataSet(
+        self,
+        datatype,
+        sizeX,
+        sizeY,
+        sizeZ,
+        sizeC,
+        sizeT,
+        voxelSizeX=1,
+        voxelSizeY=1,
+        voxelSizeZ=1,
+        deltaTime=1,
+    ):
         """Creates an Imaris dataset and replaces current one.
 
         :param datatype: datype for the dataset to be created
@@ -602,21 +644,27 @@ class pIceImarisConnector(object):
             ImarisTType = factory.CreateDataSet().GetType()
 
         # Data type
-        if datatype == np.uint8 or \
-                        str(datatype) == 'uint8' or \
-                        str(datatype) == 'eTypeUInt8':
+        if (
+            datatype == np.uint8
+            or str(datatype) == "uint8"
+            or str(datatype) == "eTypeUInt8"
+        ):
 
             imarisDataType = ImarisTType.eTypeUInt8
 
-        elif datatype == np.uint16 or \
-                        str(datatype) == 'uint16' or \
-                        str(datatype) == 'eTypeUInt16':
+        elif (
+            datatype == np.uint16
+            or str(datatype) == "uint16"
+            or str(datatype) == "eTypeUInt16"
+        ):
 
             imarisDataType = ImarisTType.eTypeUInt16
 
-        elif datatype == np.float32 or \
-                        str(datatype) == 'float' or \
-                        str(datatype) == 'eTypeFloat':
+        elif (
+            datatype == np.float32
+            or str(datatype) == "float"
+            or str(datatype) == "eTypeFloat"
+        ):
 
             imarisDataType = ImarisTType.eTypeFloat
 
@@ -658,7 +706,7 @@ class pIceImarisConnector(object):
         """
 
         # Initialize output
-        channelNames = [];
+        channelNames = []
 
         # Is Imaris running?
         if not self.isAlive():
@@ -731,11 +779,13 @@ class pIceImarisConnector(object):
             arr = np.frombuffer(arr.data, dtype=np.uint8)
             arr = np.reshape(arr, (sizeX, sizeY))
         elif imarisDataType == "eTypeUInt16":
-            arr = np.array(iDataSet.GetDataSliceShorts(plane, channel, timepoint),
-                           dtype=np.uint16)
+            arr = np.array(
+                iDataSet.GetDataSliceShorts(plane, channel, timepoint), dtype=np.uint16
+            )
         elif imarisDataType == "eTypeFloat":
-            arr = np.array(iDataSet.GetDataSliceFloats(plane, channel, timepoint),
-                           dtype=np.float32)
+            arr = np.array(
+                iDataSet.GetDataSliceFloats(plane, channel, timepoint), dtype=np.float32
+            )
         else:
             raise Exception("Bad value for iDataSet::getType().")
 
@@ -795,19 +845,17 @@ class pIceImarisConnector(object):
         # separate function for the case where filtering is requested.
         children = []
         if typeFilter is None:
-            children = self._getChildrenAtLevel(surpassScene,
-                                                recursive,
-                                                children)
+            children = self._getChildrenAtLevel(surpassScene, recursive, children)
         else:
-            children = self._getFilteredChildrenAtLevel(surpassScene,
-                                                        recursive,
-                                                        typeFilter,
-                                                        children)
+            children = self._getFilteredChildrenAtLevel(
+                surpassScene, recursive, typeFilter, children
+            )
 
         return children
 
-    def getDataSubVolume(self, x0, y0, z0, channel,
-                         timepoint, dX, dY, dZ, iDataSet=None):
+    def getDataSubVolume(
+        self, x0, y0, z0, channel, timepoint, dX, dY, dZ, iDataSet=None
+    ):
         """Returns a data subvolume from Imaris.
 
         :param x0: x coordinate of the top-left vertex of the subvolume to be returned.
@@ -865,29 +913,29 @@ class pIceImarisConnector(object):
 
         # Check the boundaries
         if x0 < 0 or x0 > iDataSet.GetSizeX() - 1:
-            raise ValueError('The requested starting position x0 is out of bounds.')
+            raise ValueError("The requested starting position x0 is out of bounds.")
 
         if y0 < 0 or y0 > iDataSet.GetSizeY() - 1:
-            raise ValueError('The requested starting position y0 is out of bounds.')
+            raise ValueError("The requested starting position y0 is out of bounds.")
 
         if z0 < 0 or z0 > iDataSet.GetSizeZ() - 1:
-            raise ValueError('The requested starting position z0 is out of bounds.')
+            raise ValueError("The requested starting position z0 is out of bounds.")
 
         if channel < 0 or channel > iDataSet.GetSizeC() - 1:
-            raise ValueError('The requested channel index is out of bounds.')
+            raise ValueError("The requested channel index is out of bounds.")
 
         if timepoint < 0 or timepoint > iDataSet.GetSizeT() - 1:
-            raise ValueError('The requested timepoint index is out of bounds.')
+            raise ValueError("The requested timepoint index is out of bounds.")
 
         # Check that we are within bounds
         if x0 + dX > iDataSet.GetSizeX():
-            raise ValueError('The requested x range dimension is out of bounds.')
+            raise ValueError("The requested x range dimension is out of bounds.")
 
         if y0 + dY > iDataSet.GetSizeY():
-            raise ValueError('The requested x range dimension is out of bounds.')
+            raise ValueError("The requested x range dimension is out of bounds.")
 
         if z0 + dZ > iDataSet.GetSizeZ():
-            raise ValueError('The requested x range dimension is out of bounds.')
+            raise ValueError("The requested x range dimension is out of bounds.")
 
         # Check that the requested channel and timepoint exist
         if channel < 0 or channel > iDataSet.GetSizeC() - 1:
@@ -900,17 +948,26 @@ class pIceImarisConnector(object):
         if imarisDataType == "eTypeUInt8":
             # Ice returns uint8 as a string: we must cast. This behavior might
             # be changed in the future.
-            arr = np.array(iDataSet.GetDataSubVolumeAs1DArrayBytes( \
-                x0, y0, z0, channel, timepoint, dX, dY, dZ))
+            arr = np.array(
+                iDataSet.GetDataSubVolumeAs1DArrayBytes(
+                    x0, y0, z0, channel, timepoint, dX, dY, dZ
+                )
+            )
             arr = np.frombuffer(arr.data, dtype=np.uint8)
         elif imarisDataType == "eTypeUInt16":
-            arr = np.array(iDataSet.GetDataSubVolumeAs1DArrayShorts( \
-                x0, y0, z0, channel, timepoint, dX, dY, dZ), \
-                dtype=np.uint16)
+            arr = np.array(
+                iDataSet.GetDataSubVolumeAs1DArrayShorts(
+                    x0, y0, z0, channel, timepoint, dX, dY, dZ
+                ),
+                dtype=np.uint16,
+            )
         elif imarisDataType == "eTypeFloat":
-            arr = np.array(iDataSet.GetDataSubVolumeAs1DArrayFloats( \
-                x0, y0, z0, channel, timepoint, dX, dY, dZ), \
-                dtype=np.float32)
+            arr = np.array(
+                iDataSet.GetDataSubVolumeAs1DArrayFloats(
+                    x0, y0, z0, channel, timepoint, dX, dY, dZ
+                ),
+                dtype=np.float32,
+            )
         else:
             raise Exception("Bad value for iDataSet::getType().")
 
@@ -967,11 +1024,15 @@ class pIceImarisConnector(object):
             arr = np.array(iDataSet.GetDataVolumeAs1DArrayBytes(channel, timepoint))
             arr = np.frombuffer(arr.data, dtype=np.uint8)
         elif imarisDataType == "eTypeUInt16":
-            arr = np.array(iDataSet.GetDataVolumeAs1DArrayShorts(channel, timepoint),
-                           dtype=np.uint16)
+            arr = np.array(
+                iDataSet.GetDataVolumeAs1DArrayShorts(channel, timepoint),
+                dtype=np.uint16,
+            )
         elif imarisDataType == "eTypeFloat":
-            arr = np.array(iDataSet.GetDataVolumeAs1DArrayFloats(channel, timepoint),
-                           dtype=np.float32)
+            arr = np.array(
+                iDataSet.GetDataVolumeAs1DArrayFloats(channel, timepoint),
+                dtype=np.float32,
+            )
         else:
             raise Exception("Bad value for iDataSet::getType().")
 
@@ -1003,12 +1064,14 @@ class pIceImarisConnector(object):
             return None
 
         # Wrap the extends into a tuple
-        return (self._mImarisApplication.GetDataSet().GetExtendMinX(),
-                self._mImarisApplication.GetDataSet().GetExtendMaxX(),
-                self._mImarisApplication.GetDataSet().GetExtendMinY(),
-                self._mImarisApplication.GetDataSet().GetExtendMaxY(),
-                self._mImarisApplication.GetDataSet().GetExtendMinZ(),
-                self._mImarisApplication.GetDataSet().GetExtendMaxZ())
+        return (
+            self._mImarisApplication.GetDataSet().GetExtendMinX(),
+            self._mImarisApplication.GetDataSet().GetExtendMaxX(),
+            self._mImarisApplication.GetDataSet().GetExtendMinY(),
+            self._mImarisApplication.GetDataSet().GetExtendMaxY(),
+            self._mImarisApplication.GetDataSet().GetExtendMinZ(),
+            self._mImarisApplication.GetDataSet().GetExtendMaxZ(),
+        )
 
     def getImarisVersionAsInteger(self):
         """Returns the Imaris version as an integer.
@@ -1028,7 +1091,7 @@ class pIceImarisConnector(object):
         version = self.mImarisApplication.GetVersion()
 
         # Parse version
-        match = re.search(r'(\d)+\.(\d)+\.+(\d)?', version)
+        match = re.search(r"(\d)+\.(\d)+\.+(\d)?", version)
         if not match:
             raise Exception("Could not retrieve version information from Imaris.")
 
@@ -1102,11 +1165,13 @@ class pIceImarisConnector(object):
         """
 
         # Wrap the sizes into a tuple
-        return (self._mImarisApplication.GetDataSet().GetSizeX(),
-                self._mImarisApplication.GetDataSet().GetSizeY(),
-                self._mImarisApplication.GetDataSet().GetSizeZ(),
-                self._mImarisApplication.GetDataSet().GetSizeC(),
-                self._mImarisApplication.GetDataSet().GetSizeT())
+        return (
+            self._mImarisApplication.GetDataSet().GetSizeX(),
+            self._mImarisApplication.GetDataSet().GetSizeY(),
+            self._mImarisApplication.GetDataSet().GetSizeZ(),
+            self._mImarisApplication.GetDataSet().GetSizeC(),
+            self._mImarisApplication.GetDataSet().GetSizeT(),
+        )
 
     def getSurpassCameraRotationMatrix(self):
         """Calculates the rotation matrix that corresponds to current view in the Surpass Scene (from the Camera
@@ -1136,7 +1201,7 @@ class pIceImarisConnector(object):
         W = q[3]
 
         # Make sure the quaternion is a unit quaternion
-        n2 = X ** 2 + Y ** 2 + Z ** 2 + W ** 2
+        n2 = X**2 + Y**2 + Z**2 + W**2
         if abs(n2 - 1) > 1e-4:
             n = math.sqrt(n2)
             X /= n
@@ -1245,7 +1310,7 @@ class pIceImarisConnector(object):
         as argument, the function will try with the currently selected object in the Surpass Scene. If this is not
         an ISpots nor an ISurfaces object, an empty result set will be returned.
 
-        :param iSpots (optional, default None) (optional) either an ISpots or an ISurfaces object. If not passed, 
+        :param iSpots (optional, default None) (optional) either an ISpots or an ISurfaces object. If not passed,
         the function will try with the currently selected object in the Surpass Scene.
         :type Imaris::IDataItem
 
@@ -1270,8 +1335,10 @@ class pIceImarisConnector(object):
             # Try to get the currently selected object in the Surpass scene
             iObject = self.mImarisApplication.GetSurpassSelection()
             if iObject is None:
-                raise Exception("If no object is passed to the function, then either an ISpots or an ISurfaces " +
-                                "object must be selected in ")
+                raise Exception(
+                    "If no object is passed to the function, then either an ISpots or an ISurfaces "
+                    + "object must be selected in "
+                )
 
         # Check the type
         factory = self.mImarisApplication.GetFactory()
@@ -1345,26 +1412,28 @@ class pIceImarisConnector(object):
         """
 
         # Voxel size X
-        vX = (self._mImarisApplication.GetDataSet().GetExtendMaxX() -
-              self._mImarisApplication.GetDataSet().GetExtendMinX()) / \
-             self._mImarisApplication.GetDataSet().GetSizeX()
+        vX = (
+            self._mImarisApplication.GetDataSet().GetExtendMaxX()
+            - self._mImarisApplication.GetDataSet().GetExtendMinX()
+        ) / self._mImarisApplication.GetDataSet().GetSizeX()
 
         # Voxel size Y
-        vY = (self._mImarisApplication.GetDataSet().GetExtendMaxY() -
-              self._mImarisApplication.GetDataSet().GetExtendMinY()) / \
-             self._mImarisApplication.GetDataSet().GetSizeY()
+        vY = (
+            self._mImarisApplication.GetDataSet().GetExtendMaxY()
+            - self._mImarisApplication.GetDataSet().GetExtendMinY()
+        ) / self._mImarisApplication.GetDataSet().GetSizeY()
 
         # Voxel size Z
-        vZ = (self._mImarisApplication.GetDataSet().GetExtendMaxZ() -
-              self._mImarisApplication.GetDataSet().GetExtendMinZ()) / \
-             self._mImarisApplication.GetDataSet().GetSizeZ()
+        vZ = (
+            self._mImarisApplication.GetDataSet().GetExtendMaxZ()
+            - self._mImarisApplication.GetDataSet().GetExtendMinZ()
+        ) / self._mImarisApplication.GetDataSet().GetSizeZ()
 
         # Wrap the voxel sizes into a tuple
         return vX, vY, vZ
 
     def info(self):
-        """Prints to console the full paths to the Imaris and ImarisServerIce executables  and the ImarisLib module.
-        """
+        """Prints to console the full paths to the Imaris and ImarisServerIce executables  and the ImarisLib module."""
 
         # Display info to console
         print("pIceImarisConnector version " + self.version + " using:")
@@ -1424,12 +1493,12 @@ class pIceImarisConnector(object):
     @staticmethod
     def mapAxisAngleToRotationMatrix(r_axis, r_angle):
         """This method calculates the 3D rotation matrix for an angle and an axis of rotation.
-        
+
         :param r_axis: axis of rotation, e.g.[0, 1, 0]
         :type r_axis: list or numpy array
         :param r_angle: angle in radians
         :type r_angle: float
-        :return: (R: rotation in matrix form; x_axis: x axis of the rotation coordinate system; 
+        :return: (R: rotation in matrix form; x_axis: x axis of the rotation coordinate system;
                   y_axis: y axis of the rotation coordinate system; z_axis: z axis of the rotation coordinate system)
         :rtype: tuple
         """
@@ -1439,7 +1508,7 @@ class pIceImarisConnector(object):
         elif isinstance(r_axis, np.ndarray):
             r_axis = r_axis.astype(np.float32)
         else:
-            raise TypeError('Expected list or numpy array')
+            raise TypeError("Expected list or numpy array")
 
         # Make sure the vector is normalized
         r_axis = pIceImarisConnector.normalize(r_axis)
@@ -1496,7 +1565,7 @@ class pIceImarisConnector(object):
         elif isinstance(q, np.ndarray):
             q = q.astype(np.float32)
         else:
-            raise TypeError('Expected list or numpy array')
+            raise TypeError("Expected list or numpy array")
 
         # Make sure the quaternion is normalized
         q = pIceImarisConnector.normalize(q)
@@ -1556,8 +1625,7 @@ class pIceImarisConnector(object):
         errMsg = "Expected an (n x 3) list or Numpy array (np.float32)."
 
         # Check the input parameter uPos
-        if not isinstance(uPos, list) and \
-                not isinstance(uPos, np.ndarray):
+        if not isinstance(uPos, list) and not isinstance(uPos, np.ndarray):
             raise TypeError(errMsg)
 
         # If list, convert to Numpy array
@@ -1576,10 +1644,13 @@ class pIceImarisConnector(object):
         voxelSizes = np.array(self.getVoxelSizes())
 
         # Get the extends into a Numpy array
-        extends = np.array([
-            self.mImarisApplication.GetDataSet().GetExtendMinX(),
-            self.mImarisApplication.GetDataSet().GetExtendMinY(),
-            self.mImarisApplication.GetDataSet().GetExtendMinZ()])
+        extends = np.array(
+            [
+                self.mImarisApplication.GetDataSet().GetExtendMinX(),
+                self.mImarisApplication.GetDataSet().GetExtendMinY(),
+                self.mImarisApplication.GetDataSet().GetExtendMinZ(),
+            ]
+        )
 
         # Map units to voxels
         p = (uPos - extends) / voxelSizes + 0.5
@@ -1605,8 +1676,7 @@ class pIceImarisConnector(object):
         errMsg = "Expected an (n x 3) array or Numpy array."
 
         # Check the input parameter vPos
-        if not isinstance(vPos, list) and \
-                not isinstance(vPos, np.ndarray):
+        if not isinstance(vPos, list) and not isinstance(vPos, np.ndarray):
             raise TypeError(errMsg)
 
         # If list, convert to Numpy array
@@ -1625,10 +1695,13 @@ class pIceImarisConnector(object):
         voxelSizes = np.array(self.getVoxelSizes())
 
         # Get the extends into a Numpy array
-        extends = np.array([
-            self.mImarisApplication.GetDataSet().GetExtendMinX(),
-            self.mImarisApplication.GetDataSet().GetExtendMinY(),
-            self.mImarisApplication.GetDataSet().GetExtendMinZ()])
+        extends = np.array(
+            [
+                self.mImarisApplication.GetDataSet().GetExtendMinX(),
+                self.mImarisApplication.GetDataSet().GetExtendMinY(),
+                self.mImarisApplication.GetDataSet().GetExtendMinZ(),
+            ]
+        )
 
         # Map units to voxels
         p = (vPos - 0.5) * voxelSizes + extends
@@ -1672,11 +1745,10 @@ class pIceImarisConnector(object):
         # "scalar"
         if isinstance(rgbaScalar, int):
             rgbaScalar = np.array(rgbaScalar, dtype=np.uint32)
-        elif isinstance(rgbaScalar, np.ndarray) and \
-                        rgbaScalar.dtype == np.uint32:
+        elif isinstance(rgbaScalar, np.ndarray) and rgbaScalar.dtype == np.uint32:
             pass
         else:
-            raise TypeError('Expected integer of Numpy scalar (uint32).')
+            raise TypeError("Expected integer of Numpy scalar (uint32).")
 
         # Extract the uint32 scalar into a vector of 4 uint8s
         rgbaUint8Vector = np.frombuffer(rgbaScalar.data, dtype=np.uint8)
@@ -1716,13 +1788,17 @@ class pIceImarisConnector(object):
         elif isinstance(rgbaVector, np.ndarray):
             pass
         else:
-            raise TypeError('Expected list or Numpy array.')
+            raise TypeError("Expected list or Numpy array.")
 
         # Check rgbaVector
-        if rgbaVector.ndim != 1 or rgbaVector.shape[0] != 4 or \
-                np.any(np.logical_or(rgbaVector < 0, rgbaVector > 1)):
-            raise ValueError("rgbaVector must be a vector with 4 elements in " +
-                             "the 0 .. 1 range.")
+        if (
+            rgbaVector.ndim != 1
+            or rgbaVector.shape[0] != 4
+            or np.any(np.logical_or(rgbaVector < 0, rgbaVector > 1))
+        ):
+            raise ValueError(
+                "rgbaVector must be a vector with 4 elements in " + "the 0 .. 1 range."
+            )
 
         # Bring it into the 0..255 range
         rgbaVector = np.asarray(np.round(255 * rgbaVector), dtype=np.uint8)
@@ -1748,25 +1824,26 @@ class pIceImarisConnector(object):
         elif isinstance(q1, np.ndarray):
             q1 = q1.astype(np.float32)
         else:
-            raise TypeError('Expected list or numpy array')
+            raise TypeError("Expected list or numpy array")
 
         if isinstance(q2, list):
             q2 = np.array(q2, dtype=np.float32)
         elif isinstance(q2, np.ndarray):
             q2 = q2.astype(np.float32)
         else:
-            raise TypeError('Expected list or numpy array')
+            raise TypeError("Expected list or numpy array")
 
         # Normalize
         q1 = pIceImarisConnector.normalize(q1)
         q2 = pIceImarisConnector.normalize(q2)
 
         # Multiply the quaternions
-        q = [q1[0] * q2[3] + q1[1] * q2[2] - q1[2] * q2[1] + q1[3] * q2[0],
-             - q1[0] * q2[2] + q1[1] * q2[3] + q1[2] * q2[0] + q1[3] * q2[1],
-             q1[0] * q2[1] - q1[1] * q2[0] + q1[2] * q2[3] + q1[3] * q2[2],
-             - q1[0] * q2[0] - q1[1] * q2[1] - q1[2] * q2[2] + q1[3] * q2[3]
-             ]
+        q = [
+            q1[0] * q2[3] + q1[1] * q2[2] - q1[2] * q2[1] + q1[3] * q2[0],
+            -q1[0] * q2[2] + q1[1] * q2[3] + q1[2] * q2[0] + q1[3] * q2[1],
+            q1[0] * q2[1] - q1[1] * q2[0] + q1[2] * q2[3] + q1[3] * q2[2],
+            -q1[0] * q2[0] - q1[1] * q2[1] - q1[2] * q2[2] + q1[3] * q2[3],
+        ]
 
         return np.array(q)
 
@@ -1812,7 +1889,7 @@ class pIceImarisConnector(object):
                   (e.g. all quaternions for a time series). If the quaternions are not normalized,
                   they will be before the conjugate is calculated.
         :type q: list or numpy array
-        
+
         :return: conjugate of the quaternion (list)
         :rtype: numpy array
         """
@@ -1901,9 +1978,11 @@ class pIceImarisConnector(object):
             return
 
         # Test the type and shape of voxel size
-        if type(voxelSizes) is not list and \
-                        type(voxelSizes) is not tuple and \
-                        type(voxelSizes) is not np.ndarray:
+        if (
+            type(voxelSizes) is not list
+            and type(voxelSizes) is not tuple
+            and type(voxelSizes) is not np.ndarray
+        ):
             raise Exception("Bad value for voxelSizes.")
 
         if len(voxelSizes) != 3:
@@ -1916,13 +1995,19 @@ class pIceImarisConnector(object):
             return
 
         # Voxel size X
-        iDataSet.SetExtendMaxX(voxelSizes[0] * iDataSet.GetSizeX() + iDataSet.GetExtendMinX())
+        iDataSet.SetExtendMaxX(
+            voxelSizes[0] * iDataSet.GetSizeX() + iDataSet.GetExtendMinX()
+        )
 
         # Voxel size Y
-        iDataSet.SetExtendMaxY(voxelSizes[1] * iDataSet.GetSizeY() + iDataSet.GetExtendMinY())
+        iDataSet.SetExtendMaxY(
+            voxelSizes[1] * iDataSet.GetSizeY() + iDataSet.GetExtendMinY()
+        )
 
         # Voxel size Z
-        iDataSet.SetExtendMaxZ(voxelSizes[2] * iDataSet.GetSizeZ() + iDataSet.GetExtendMinZ())
+        iDataSet.SetExtendMaxZ(
+            voxelSizes[2] * iDataSet.GetSizeZ() + iDataSet.GetExtendMinZ()
+        )
 
     def startImaris(self, userControl=False):
         """Starts an Imaris instance and stores the ImarisApplication ICE object.
@@ -1939,7 +2024,9 @@ class pIceImarisConnector(object):
 
         # Check the platform
         if not self._isSupportedPlatform():
-            raise Exception('pIceImarisConnector can only work on Windows and Mac OS X.')
+            raise Exception(
+                "pIceImarisConnector can only work on Windows and Mac OS X."
+            )
 
         # Store the userControl
         self._mUserControl = userControl
@@ -1987,7 +2074,9 @@ class pIceImarisConnector(object):
                     self._mImarisLib = ImarisLib.ImarisLib()
                     vImaris = self._mImarisLib.GetApplication(self._mImarisObjectID)
                 except:
-                    print("Exception when trying to get the Application from ImariServer")
+                    print(
+                        "Exception when trying to get the Application from ImariServer"
+                    )
 
                 if vImaris is not None:
                     break
@@ -2000,7 +2089,7 @@ class pIceImarisConnector(object):
 
             # At this point we should have the application
             if vImaris is None:
-                print('Could not link to the Imaris application.')
+                print("Could not link to the Imaris application.")
                 return False
 
             # We can store the application
@@ -2022,19 +2111,24 @@ class pIceImarisConnector(object):
         :rtype: string
         """
         import pIceImarisConnector.test as t
+
         return os.path.abspath(os.path.dirname(t.__file__))
 
     def loadPyramidalCellTestDataset(self):
         """Loads the PyramidalCell.ims test dataset."""
-        filename = str(os.path.join(pIceImarisConnector.getTestFolder(), 'PyramidalCell.ims'))
+        filename = str(
+            os.path.join(pIceImarisConnector.getTestFolder(), "PyramidalCell.ims")
+        )
         if self.isAlive():
-            self.mImarisApplication.FileOpen(filename, '')
+            self.mImarisApplication.FileOpen(filename, "")
 
     def loadSwimmingAlgaeTestDataset(self):
         """Loads the SwimmingAlgae.ims test dataset."""
-        filename = str(os.path.join(pIceImarisConnector.getTestFolder(), 'SwimmingAlgae.ims'))
+        filename = str(
+            os.path.join(pIceImarisConnector.getTestFolder(), "SwimmingAlgae.ims")
+        )
         if self.isAlive():
-            self.mImarisApplication.FileOpen(filename, '')
+            self.mImarisApplication.FileOpen(filename, "")
 
     # --------------------------------------------------------------------------
     #
@@ -2047,7 +2141,7 @@ class pIceImarisConnector(object):
         """Gets or discovers the path to the Imaris executable. For internal use only!"""
 
         # Try getting the environment variable IMARISPATH
-        imarisPath = os.getenv('IMARISPATH')
+        imarisPath = os.getenv("IMARISPATH")
 
         # If imarisPath is None, we search for Imaris
         if imarisPath is None:
@@ -2066,8 +2160,12 @@ class pIceImarisConnector(object):
                 # Pick the directory name with highest version number
                 newestVersionDir = self._findNewestVersionDir(tmp)
                 if newestVersionDir is None:
-                    raise OSError("No Imaris installation found in " + tmp + ". Please define " +
-                                  "an environment variable 'IMARISPATH'.")
+                    raise OSError(
+                        "No Imaris installation found in "
+                        + tmp
+                        + ". Please define "
+                        + "an environment variable 'IMARISPATH'."
+                    )
                 else:
                     imarisPath = newestVersionDir
 
@@ -2075,8 +2173,10 @@ class pIceImarisConnector(object):
 
             # Check that IMARISPATH points to a valid directory
             if not os.path.isdir(imarisPath):
-                raise OSError("The content of the IMARISPATH environment variable does not " +
-                              "point to a valid directory.")
+                raise OSError(
+                    "The content of the IMARISPATH environment variable does not "
+                    + "point to a valid directory."
+                )
 
         # Now store imarisPath and proceed with setting all required
         # executables and libraries
@@ -2085,29 +2185,35 @@ class pIceImarisConnector(object):
         # Set the path to the Imaris and ImarisServerIce executable and to
         # the ImarisLib library
         if self._ispc():
-            exePath = os.path.join(imarisPath, 'Imaris.exe')
-            serverExePath = os.path.join(imarisPath, 'ImarisServerIce.exe')
+            exePath = os.path.join(imarisPath, "Imaris.exe")
+            serverExePath = os.path.join(imarisPath, "ImarisServerIce.exe")
             if self._mImarisIntegerVersion >= 9050000:
                 # Imaris 9.5 supports also python 3
                 if sys.version_info[0] == 2:
-                    libPath = os.path.join(imarisPath, 'XT', 'python2')
+                    libPath = os.path.join(imarisPath, "XT", "python2")
                 else:
-                    libPath = os.path.join(imarisPath, 'XT', 'python3')
+                    libPath = os.path.join(imarisPath, "XT", "python3")
             else:
-                libPath = os.path.join(imarisPath, 'XT', 'python')
+                libPath = os.path.join(imarisPath, "XT", "python")
         elif self._ismac():
-            exePath = os.path.join(imarisPath,
-                                   'Contents', 'MacOS', 'Imaris')
-            serverExePath = os.path.join(imarisPath,
-                                         'Contents', 'MacOS', 'ImarisServerIce')
+            exePath = os.path.join(imarisPath, "Contents", "MacOS", "Imaris")
+            serverExePath = os.path.join(
+                imarisPath, "Contents", "MacOS", "ImarisServerIce"
+            )
             if self._mImarisIntegerVersion >= 9050000:
                 # Imaris 9.5 supports also python 3
                 if sys.version_info[0] == 2:
-                    libPath = os.path.join(imarisPath, 'Contents', 'SharedSupport', 'XT', 'python2')
+                    libPath = os.path.join(
+                        imarisPath, "Contents", "SharedSupport", "XT", "python2"
+                    )
                 else:
-                    libPath = os.path.join(imarisPath, 'Contents', 'SharedSupport', 'XT', 'python3')
+                    libPath = os.path.join(
+                        imarisPath, "Contents", "SharedSupport", "XT", "python3"
+                    )
             else:
-                libPath = os.path.join(imarisPath, 'Contents', 'SharedSupport', 'XT', 'python')
+                libPath = os.path.join(
+                    imarisPath, "Contents", "SharedSupport", "XT", "python"
+                )
         else:
             raise OSError("pIceImarisConnector only works on Windows and Mac OS X.")
 
@@ -2140,7 +2246,7 @@ class pIceImarisConnector(object):
         newestVersion = 1
 
         # Get all subfolders
-        subDirs = glob.glob(directory + '/Imaris*')
+        subDirs = glob.glob(directory + "/Imaris*")
 
         # Go over all subfolder and analyze them
         for d in subDirs:
@@ -2152,13 +2258,11 @@ class pIceImarisConnector(object):
 
             # Make sure to ignore the Scene Viewer, the File Converter
             # and the 32bit version on 64 bit machines
-            if "ImarisSceneViewer" in d or \
-                            "FileConverter" in d or \
-                            "32bit" in d:
+            if "ImarisSceneViewer" in d or "FileConverter" in d or "32bit" in d:
                 continue
 
             # Get version information
-            match = re.search(r'(\d)+\.(\d)+\.+(\d)?', d)
+            match = re.search(r"(\d)+\.(\d)+\.+(\d)?", d)
             if not match:
                 continue
 
@@ -2218,9 +2322,9 @@ class pIceImarisConnector(object):
             # Is this a folder? If it is, call this function recursively
             if self.mImarisApplication.GetFactory().IsDataContainer(child):
                 if recursive:
-                    children = self._getChildrenAtLevel(self.autocast(child),
-                                                        recursive,
-                                                        children)
+                    children = self._getChildrenAtLevel(
+                        self.autocast(child), recursive, children
+                    )
             else:
                 children.append(self.autocast(child))
 
@@ -2266,7 +2370,8 @@ class pIceImarisConnector(object):
             if self.mImarisApplication.GetFactory().IsDataContainer(child):
                 if recursive:
                     children = self._getFilteredChildrenAtLevel(
-                        self.autocast(child), recursive, typeFilter, children)
+                        self.autocast(child), recursive, typeFilter, children
+                    )
             else:
                 currentChild = self.autocast(child)
                 if self._isOfType(currentChild, typeFilter):
@@ -2282,13 +2387,13 @@ class pIceImarisConnector(object):
             ImarisLib = importlib.import_module("ImarisLib")
         except:
             # The imp module is deprecated.
-            fileobj, pathname, description = imp.find_module('ImarisLib')
-            ImarisLib = imp.load_module('ImarisLib', fileobj, pathname, description)
+            fileobj, pathname, description = imp.find_module("ImarisLib")
+            ImarisLib = imp.load_module("ImarisLib", fileobj, pathname, description)
             fileobj.close()
         return ImarisLib
 
     def _isImarisServerIceRunning(self):
-        """ Checks whether an instance of ImarisServerIce is already running and can be reused. For internal use only!
+        """Checks whether an instance of ImarisServerIce is already running and can be reused. For internal use only!
 
         :return: True is an instance of ImarisServerIce is running and can be reused, False otherwise.
         :rtype: Boolean
@@ -2296,7 +2401,7 @@ class pIceImarisConnector(object):
 
         # The check will be different on Windows and on Mac OS X
         if self._ispc():
-            cmd = "tasklist /NH /FI \"IMAGENAME eq ImarisServerIce.exe\""
+            cmd = 'tasklist /NH /FI "IMAGENAME eq ImarisServerIce.exe"'
             result = str(subprocess.check_output(cmd))
             if "ImarisServerIce.exe" in result:
                 return True
@@ -2306,7 +2411,7 @@ class pIceImarisConnector(object):
             if self._mImarisServerIceExePath in result:
                 return True
         else:
-            raise OSError('Unsupported platform.')
+            raise OSError("Unsupported platform.")
 
         return False
 
@@ -2351,33 +2456,33 @@ class pIceImarisConnector(object):
         factory = self.mImarisApplication.GetFactory()
 
         # Test the object
-        if typeValue == 'Cells':
+        if typeValue == "Cells":
             return factory.IsCells(obj)
-        elif typeValue == 'ClippingPlane':
+        elif typeValue == "ClippingPlane":
             return factory.IsClippingPlane(obj)
-        elif typeValue == 'DataSet':
+        elif typeValue == "DataSet":
             return factory.IsDataSet(obj)
-        elif typeValue == 'Filaments':
+        elif typeValue == "Filaments":
             return factory.IsFilaments(obj)
-        elif typeValue == 'Frame':
+        elif typeValue == "Frame":
             return factory.IsFrame(obj)
-        elif typeValue == 'LightSource':
+        elif typeValue == "LightSource":
             return factory.IsLightSource(obj)
-        elif typeValue == 'MeasurementPoints':
+        elif typeValue == "MeasurementPoints":
             return factory.IsMeasurementPoints(obj)
-        elif typeValue == 'Spots':
+        elif typeValue == "Spots":
             return factory.IsSpots(obj)
-        elif typeValue == 'Surfaces':
+        elif typeValue == "Surfaces":
             return factory.IsSurfaces(obj)
-        elif typeValue == 'SurpassCamera':
+        elif typeValue == "SurpassCamera":
             return factory.IsSurpassCamera(obj)
-        elif typeValue == 'Volume':
+        elif typeValue == "Volume":
             return factory.IsVolume(obj)
-        elif typeValue == 'ReferenceFrames':
+        elif typeValue == "ReferenceFrames":
             # The factory does not have a Is...() method for reference frames
             return factory.ToReferenceFrames(obj) is not None
         else:
-            raise ValueError('Bad value for ''typeValue''.')
+            raise ValueError("Bad value for " "typeValue" ".")
 
     def _ispc(self):
         """Returns true if pIceImarisConnector is being run on Windows. For internal use only!
@@ -2394,7 +2499,7 @@ class pIceImarisConnector(object):
         :return: True if pIceImarisConnector is being run on Windows or Mac OS X, False otherwise.
         :rtype: Boolean
         """
-        return (self._ispc() or self._ismac())
+        return self._ispc() or self._ismac()
 
     def _startImarisServerIce(self):
         """Starts an instance of ImarisServerIce and waits until it is ready to accept connections. For internal
@@ -2406,7 +2511,7 @@ class pIceImarisConnector(object):
 
         # Imaris only runs on Windows and Mac OS X
         if not self._isSupportedPlatform():
-            raise Exception('IceImarisConnector can only work on Windows and Mac OS X')
+            raise Exception("IceImarisConnector can only work on Windows and Mac OS X")
 
         # Check whether an instance of ImarisServerIce is already running.
         # If this is the case, we can return success
@@ -2440,5 +2545,3 @@ class pIceImarisConnector(object):
             t = time.time()
 
         return False
-
-
