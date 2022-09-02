@@ -45,32 +45,6 @@ class pIceImarisConnector(object):
     # pIceImarisConnector version
     __version__ = "0.4.2"
 
-    # Imaris-related paths
-    _mImarisPath = ""
-    _mImarisExePath = ""
-    _mImarisServerIceExePath = ""
-    _mImarisLibPath = ""
-
-    # Imaris version in integer form
-    _mImarisIntegerVersion = 1
-
-    # ImarisLib object
-    _mImarisLib = None
-
-    # ICE ImarisApplication object
-    _mImarisApplication = None
-
-    # Imaris ID
-    _mImarisObjectID = 0
-
-    # Use control
-    _mUserControl = False
-
-    # Possible type filters
-    _mPossibleTypeFilters = ["Cells", "ClippingPlane", "DataSet", "Filaments", "Frame", "LightSource",
-                             "MeasurementPoints", "Spots", "Surfaces", "SurpassCamera", "Volume",
-                             "ReferenceFrames"]
-
     @property
     def version(self):
         """Return the version number."""
@@ -112,6 +86,32 @@ class pIceImarisConnector(object):
                             - a pIceImarisConnector reference
                             - an Imaris Application ICE object.
         """
+
+        # Imaris-related paths
+        self._mImarisPath = ""
+        self._mImarisExePath = ""
+        self._mImarisServerIceExePath = ""
+        self._mImarisLibPath = ""
+
+        # Imaris version in integer form
+        self._mImarisIntegerVersion = 1
+
+        # ImarisLib object
+        self._mImarisLib = None
+
+        # ICE ImarisApplication object
+        self._mImarisApplication = None
+
+        # Imaris ID
+        self._mImarisObjectID = 0
+
+        # Use control
+        self._mUserControl = False
+
+        # Possible type filters
+        self._mPossibleTypeFilters = ["Cells", "ClippingPlane", "DataSet", "Filaments", "Frame", "LightSource",
+                                      "MeasurementPoints", "Spots", "Surfaces", "SurpassCamera", "Volume",
+                                      "ReferenceFrames"]
 
         # If imarisApplication is a pIceImarisConnector reference,
         # we return immediately, because we want to re-use the
@@ -1372,6 +1372,7 @@ class pIceImarisConnector(object):
         print("- Imaris executable: " + self._mImarisExePath)
         print("- ImarisServerIce executable: " + self._mImarisServerIceExePath)
         print("- ImarisLib module: " + self._mImarisLibPath)
+        print("Python interpreter version: ", sys.version)
 
     def isAlive(self):
         """Checks whether the (stored) connection to Imaris is still alive.
